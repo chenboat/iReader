@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>AJAX Test</title>
+    <script type="text/javascript">
+        var req;
+        function sendText(id) {
+            var title=id.firstChild.data;
+
+            if (typeof XMLHttpRequest != "undefined") {
+                req = new XMLHttpRequest();
+            } else if (window.ActiveXObject) {
+                req = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            var base = "http://192.168.194.130:8081/randomBase?t=" + Math.random() + "&id=";
+            var url = base.concat(title);
+            req.open("GET",url,true);
+            req.send(null);
+        }
+
+    </script>
+</head>
+<body>
+<div id="userid">hannak</div>
+    <p><a onclick="sendText(this)" href="http://www.google.com">GOOGLE Test</a></p>
+</body>
+</html>
