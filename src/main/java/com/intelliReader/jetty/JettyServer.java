@@ -19,9 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -113,10 +111,20 @@ class CountingPage extends ServletContextHandler {
         response.getWriter().println("<html>\n <body>");
         Store<String,Double> wordScores = model.getWordScores();
         Store<String,Date> wordDates = model.getWordLastUpdatedDates();
+
+
+
         try {
+            List<Pair> lst = new ArrayList<Pair>();
             for(String k: wordScores.getKeys())
             {
-                response.getWriter().println("<p>" + k + "|" + wordScores.get(k) + "|" + wordDates.get(k) + "</p>" );
+                lst.add(new Pair(k,wordScores.get(k)));
+            }
+            Collections.sort(lst);
+
+            for(Pair p: lst)
+            {
+                response.getWriter().println("<p>" + p.k + "|" + wordScores.get(p.k) + "|" + wordDates.get(p.k) + "</p>" );
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,6 +133,25 @@ class CountingPage extends ServletContextHandler {
     }
 }
 
+class Pair implements Comparable<Pair>{
+
+    double s;
+    String k;
+    public Pair(String str,double d)
+    {
+        s = d;
+        k = str;
+    }
+
+    @Override
+    public int compareTo(Pair pair) {
+        if(this.s < pair.s)
+            return 1;
+        if(this.s == pair.s)
+            return 0;
+        return -1;
+    }
+}
 class FrontPage extends ServletContextHandler {
     @Override
     public void doHandle(String target,
@@ -143,13 +170,15 @@ class FrontPage extends ServletContextHandler {
             RSSFeedParser parser = new RSSFeedParser(rss);
             Feed feed = parser.readFeed();
             List<FeedMessage> messages = feed.getMessages();
-            response.getWriter().println("<h4>" + RSSSources.feeds.get(rss) + "</h4>");
+            response.getWriter().println("<p class=\"heading\">" + RSSSources.feeds.get(rss) + "</p>");
+            response.getWriter().println("<div class=\"content\">");
             for(FeedMessage message:messages)
             {
                 response.getWriter().println("<p><a onclick=\"sendText(this)\" href=\"" +
                         message.getLink() + "\">"+message.getTitle()+"</a>" +
                         "<small>" + message.getDescription() +"</small></p>" );
             }
+            response.getWriter().println("</div>");
         }
         response.getWriter().println("</div></body>\n" + "</html>");
     }
@@ -157,12 +186,22 @@ class FrontPage extends ServletContextHandler {
     String htmlPageHeader = "<!DOCTYPE html><html>\n" +
             "<head>\n" +
             "    <meta charset=\"utf-8\"/>\n" +
-            "    <title>AJAX Test</title>\n" +
+            "    <title>iReader</title>\n" +
+            "    <script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js\"></script>\n" +
+            "    <script type=\"text/javascript\">\n" +
+            "       jQuery(document).ready(function() {\n" +
+            "           jQuery(\".content\").hide();\n" +
+            "           //toggle the componenet with class msg_body\n" +
+            "           jQuery(\".heading\").click(function()\n" +
+            "           {\n" +
+            "               jQuery(this).next(\".content\").slideToggle(500);\n" +
+            "           });\n" +
+            "       }); \n" +
+            "    </script> " +
             "    <script type=\"text/javascript\">\n" +
             "        var req;\n" +
             "        function sendText(id) {\n" +
             "            var title=id.firstChild.data;\n" +
-            "\n" +
             "            if (typeof XMLHttpRequest != \"undefined\") {\n" +
             "                req = new XMLHttpRequest();\n" +
             "            } else if (window.ActiveXObject) {\n" +
