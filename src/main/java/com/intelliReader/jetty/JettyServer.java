@@ -63,6 +63,7 @@ public class JettyServer extends ServletContextHandler {
         model.addFeed(new Feed(title, null, null, null, null, null), Calendar.getInstance().getTime());
         response.setContentType("text/xml");
         response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Access-Control-Allow-Origin", "*");
         response.setContentLength(19 + title.length());
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().write("<message>" + title + "</message>");
@@ -162,6 +163,7 @@ class FrontPage extends ServletContextHandler {
     {
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
+        response.setHeader("Access-Control-Allow-Origin", "*");
         baseRequest.setHandled(true);
         response.getWriter().println(htmlPageHeader);
 
@@ -187,7 +189,7 @@ class FrontPage extends ServletContextHandler {
             "<head>\n" +
             "    <meta charset=\"utf-8\"/>\n" +
             "    <title>iReader</title>\n" +
-            "    <script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js\"></script>\n" +
+            "    <script type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js\"></script>\n" +
             "    <script type=\"text/javascript\">\n" +
             "       jQuery(document).ready(function() {\n" +
             "           jQuery(\".content\").hide();\n" +
@@ -199,24 +201,18 @@ class FrontPage extends ServletContextHandler {
             "       }); \n" +
             "    </script> " +
             "    <script type=\"text/javascript\">\n" +
-            "        var req;\n" +
             "        function sendText(id) {\n" +
             "            var title=id.firstChild.data;\n" +
-            "            if (typeof XMLHttpRequest != \"undefined\") {\n" +
-            "                req = new XMLHttpRequest();\n" +
-            "            } else if (window.ActiveXObject) {\n" +
-            "                req = new ActiveXObject(\"Microsoft.XMLHTTP\");\n" +
-            "            }\n" +
-            "            var ip = location.host; \n" +
-            "            var base = \"http://\" + ip + \"/randomBase?t=\" + Math.random() + \"&id=\";\n" +
-            "            var url = base.concat(title);\n" +
-            "            req.open(\"GET\",url,true);\n" +
-            "            req.send(null);\n" +
-            "        }\n" +
-            "\n" +
+            "            var base = \"./randomBase?t=\" + Math.random() + \"&id=\";\n" +
+            "            var uri = base.concat(title);\n" +
+            "            $.ajax({type: \"GET\", url: uri,async: false,error: function(xhr, error){\n" +
+            "               console.debug(xhr); console.debug(error);\n" +
+            "               }});" +
+            "     }\n" +
             "    </script>\n" +
             "</head>\n" +
             "<body>" +
-            "<div style=\"column-count:4;\">";
+            "<div style=\"column-count:4;-moz-column-count:4; /* Firefox */\n" +
+            "-webkit-column-count:4; /* Safari and Chrome */\">";
 
 }
