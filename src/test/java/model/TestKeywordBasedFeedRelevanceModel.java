@@ -22,8 +22,8 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
 
     public void testAddFeedsUsingInMemoryStore()
     {
-        Feed f1 = new Feed("stock market",null," economic news",null,null,null);
-        Feed f2 = new Feed("sports nba",null," nba results",null,null,null);
+        Feed f1 = new Feed("stock's market?",null," economic news",null,null,null);
+        Feed f2 = new Feed("sports :nba+",null," nba results",null,null,null);
         Feed f3 = new Feed("wall street Is good ",null," flash boy stock",null,null,null);
 
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(

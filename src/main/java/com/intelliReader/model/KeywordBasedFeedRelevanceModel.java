@@ -26,6 +26,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     Store<String,Date> wordLastUpdatedDates;
     StopWordFilter stopWordFilter;
     Stemmer stemmer;
+    static String[] EMPTY_STRING = new String[0];
 
     public Store<String, Double> getWordScores() {
         return wordScores;
@@ -52,6 +53,17 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
 
     }
 
+    private String[] tokenize(String s) {
+        if(s == null)
+        {
+            return EMPTY_STRING;
+        }
+        else
+        {
+            return s.split("\\W");
+        }
+
+    }
     @Override
     public List<Feed> rankFeeds(List<Feed> inputList, Date date) {
         List<ScoredFeed> lst = new ArrayList<ScoredFeed>();
@@ -59,7 +71,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
         {
             double score = 0;
             String desc = f.getDescription() + " " + f.getTitle();
-            for(String word : desc.trim().split(" "))
+            for(String word : tokenize(desc.trim()))
             {
                 word = word.toLowerCase();
                 if(stopWordFilter.isStopWord(word))
@@ -96,7 +108,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     public void addFeed(Feed f, Date viewDate) {
         String desc = f.getDescription() + " " + f.getTitle();
 
-        for(String word : desc.trim().split(" "))
+        for(String word : tokenize(desc.trim()))
         {
             word = word.toLowerCase();
             if(stopWordFilter.isStopWord(word)) continue; // a stop word will not be counted
