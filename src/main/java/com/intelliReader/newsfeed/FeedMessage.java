@@ -5,6 +5,8 @@ package com.intelliReader.newsfeed;
  * Author: Ting Chen
  * Date: 4/13/14
  * Time: 10:56 PM
+ *
+ * A class models a web page link sent by a RSS. It represents a new web page.
  */
 public class FeedMessage {
     String title;
@@ -12,6 +14,10 @@ public class FeedMessage {
     String link;
     String author;
     String guid;
+
+    public FeedMessage() {
+        //To change body of created methods use File | Settings | File Templates.
+    }
 
     public String getTitle() {
         return title;
@@ -52,6 +58,12 @@ public class FeedMessage {
     public void setGuid(String guid) {
         this.guid = guid;
     }
+
+    public FeedMessage(String t, String d){
+        title = t;
+        description = d;
+    }
+
 
     @Override
     public String toString() {

@@ -60,7 +60,7 @@ public class JettyServer extends ServletContextHandler {
         System.out.println(request.getRequestURL());
         String title = request.getParameter("id");
         System.out.println(title);
-        model.addFeed(new Feed(title, null, null, null, null, null), Calendar.getInstance().getTime());
+        model.addFeed(new FeedMessage(title, null), Calendar.getInstance().getTime());
         response.setContentType("text/xml");
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -83,13 +83,58 @@ public class JettyServer extends ServletContextHandler {
         FrontPage frontPage = new FrontPage();
         frontPage.setContextPath("/");
 
+        RankedPage rankedPage = new RankedPage(ajaxHandler.getModel());
+        rankedPage.setContextPath("/rank");
+
         ContextHandlerCollection handlers = new ContextHandlerCollection();
-        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp });
+        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp ,rankedPage});
 
         server.setHandler(handlers);
         server.start();
         server.join();
     }
+}
+
+class RankedPage extends ServletContextHandler {
+    private final KeywordBasedFeedRelevanceModel model;
+
+    public RankedPage(KeywordBasedFeedRelevanceModel model)
+    {
+        this.model = model;
+    }
+    @Override
+    public void doHandle(String target,
+                         Request baseRequest,
+                         HttpServletRequest request,
+                         HttpServletResponse response)
+            throws IOException, ServletException
+    {
+        HTMLUtil.setHTMLPagePrelude(baseRequest,response);
+        // Compute the scores for each article and sort the list the scores
+        List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
+        for(String rss:RSSSources.feeds.keySet()){
+            RSSFeedParser parser = new RSSFeedParser(rss);
+            Feed feed = parser.readFeed();
+            List<FeedMessage> messages = feed.getMessages();
+            for(FeedMessage message:messages)
+            {
+                feedMsgs.add(message);
+            }
+        }
+        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
+                model.rankFeeds(feedMsgs,Calendar.getInstance().getTime());
+
+        for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
+            FeedMessage message = msg.getMsg();
+            response.getWriter().println("<p><a href=\"" + message.getLink() + "\">"+message.getTitle()+"</a>" +
+                    "(" + msg.getScore() + ")" +
+                    "<small>" + message.getDescription() +"</small></p>" );
+
+        }
+
+        HTMLUtil.setHTMLPageEpilogue(response);
+    }
+
 }
 
 class CountingPage extends ServletContextHandler {
@@ -106,14 +151,9 @@ class CountingPage extends ServletContextHandler {
                          HttpServletResponse response)
             throws IOException, ServletException
     {
-        response.setContentType("text/html;charset=utf-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-        baseRequest.setHandled(true);
-        response.getWriter().println("<html>\n <body>");
+        HTMLUtil.setHTMLPagePrelude(baseRequest,response);
         Store<String,Double> wordScores = model.getWordScores();
         Store<String,Date> wordDates = model.getWordLastUpdatedDates();
-
-
 
         try {
             List<Pair> lst = new ArrayList<Pair>();
@@ -130,7 +170,7 @@ class CountingPage extends ServletContextHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        response.getWriter().println("</body>\n" + "</html>");
+        HTMLUtil.setHTMLPageEpilogue(response);
     }
 }
 

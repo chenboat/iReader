@@ -1,6 +1,6 @@
 package com.intelliReader.model;
 
-import com.intelliReader.newsfeed.Feed;
+import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.storage.Store;
 
 import java.util.*;
@@ -65,9 +65,9 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
 
     }
     @Override
-    public List<Feed> rankFeeds(List<Feed> inputList, Date date) {
-        List<ScoredFeed> lst = new ArrayList<ScoredFeed>();
-        for(Feed f: inputList)
+    public List<ScoredFeedMessage> rankFeeds(List<FeedMessage> inputList, Date date) {
+        List<ScoredFeedMessage> lst = new ArrayList<ScoredFeedMessage>();
+        for(FeedMessage f: inputList)
         {
             double score = 0;
             String desc = f.getDescription() + " " + f.getTitle();
@@ -92,20 +92,16 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                     e.printStackTrace();
                 }
             }
-            lst.add(new ScoredFeed(score,f));
+            lst.add(new ScoredFeedMessage(score,f));
         }
 
-        Collections.sort(lst);
-        List<Feed> sortedFeedLst = new ArrayList<Feed>();
-        for(ScoredFeed sf: lst)
-        {
-            sortedFeedLst.add(sf.feed);
-        }
-        return sortedFeedLst;
+        Collections.sort(lst,Collections.reverseOrder());
+
+        return lst;
     }
 
     @Override
-    public void addFeed(Feed f, Date viewDate) {
+    public void addFeed(FeedMessage f, Date viewDate) {
         String desc = f.getDescription() + " " + f.getTitle();
 
         for(String word : tokenize(desc.trim()))
@@ -154,18 +150,34 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
 
     }
 
-    private class ScoredFeed implements Comparable<ScoredFeed>
+    public class ScoredFeedMessage implements Comparable<ScoredFeedMessage>
     {
+        FeedMessage msg;
         double score;
-        Feed feed;
 
-        ScoredFeed(double s, Feed f)
+        public double getScore() {
+            return score;
+        }
+
+        public void setScore(double score) {
+            this.score = score;
+        }
+
+        public FeedMessage getMsg() {
+            return msg;
+        }
+
+        public void setMsg(FeedMessage msg) {
+            this.msg = msg;
+        }
+
+        ScoredFeedMessage(double s, FeedMessage m)
         {
             score = s;
-            feed = f;
+            msg = m;
         }
         @Override
-        public int compareTo(ScoredFeed scoredFeed) {
+        public int compareTo(ScoredFeedMessage scoredFeed) {
             if(this.score < scoredFeed.score)
                 return -1;
             else if(this.score == scoredFeed.score)

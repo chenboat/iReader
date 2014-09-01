@@ -8,6 +8,10 @@ import java.util.List;
  * Author: Ting Chen
  * Date: 4/13/14
  * Time: 10:57 PM
+ *
+ * This is a class modeling a RSS feed url from where we use RSSFeedParser get a list of latest feed messages.
+ * Example:
+ *  http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml is the feed for nytimes homepage
  */
 public class Feed {
     final String title;

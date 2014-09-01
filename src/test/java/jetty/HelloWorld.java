@@ -1,4 +1,4 @@
-package test.jetty;
+package jetty;
 
 import com.intelliReader.newsfeed.Feed;
 import com.intelliReader.newsfeed.FeedMessage;

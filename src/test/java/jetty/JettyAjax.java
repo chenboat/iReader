@@ -1,4 +1,4 @@
-package test.jetty;
+package jetty;
 
 /**
  * Created with IntelliJ IDEA.
@@ -60,7 +60,7 @@ public class JettyAjax extends ServletContextHandler {
         System.out.println(request.getRequestURL());
         String title = request.getParameter("id");
         System.out.println(title);
-        model.addFeed(new Feed(title, null, null, null, null, null), Calendar.getInstance().getTime());
+        model.addFeed(new FeedMessage(title, null), Calendar.getInstance().getTime());
         response.setContentType("text/xml");
         response.setHeader("Cache-Control", "no-cache");
         response.setContentLength(19 + title.length());

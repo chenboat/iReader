@@ -1,6 +1,8 @@
 package com.intelliReader.model;
 
 import com.intelliReader.newsfeed.Feed;
+import com.intelliReader.newsfeed.FeedMessage;
+import com.intelliReader.model.KeywordBasedFeedRelevanceModel.ScoredFeedMessage;
 
 import java.util.Date;
 import java.util.List;
@@ -13,10 +15,10 @@ import java.util.List;
  */
 public interface FeedRelevanceModel {
     // Given a list of feeds, order the feeds based on their relevance
-    public List<Feed> rankFeeds(List<Feed> inputList, Date date);
+    public List<ScoredFeedMessage> rankFeeds(List<FeedMessage> inputList, Date date);
 
     // Add a viewed feed with the view date to the model
-    public void addFeed(Feed f, Date viewDate);
+    public void addFeed(FeedMessage f, Date viewDate);
 
     // Initialize the model
     public void initModel();

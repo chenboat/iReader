@@ -1,4 +1,4 @@
-package test.berkeleydb;
+package berkeleydb;
 
 import com.sleepycat.je.*;
 import junit.framework.TestCase;

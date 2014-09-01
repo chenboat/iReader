@@ -1,9 +1,10 @@
-package test.model;
+package model;
 
 import com.intelliReader.model.KeywordBasedFeedRelevanceModel;
 import com.intelliReader.model.Stemmer;
 import com.intelliReader.model.StopWordFilter;
 import com.intelliReader.newsfeed.Feed;
+import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.storage.BerkelyDBStore;
 import com.intelliReader.storage.InMemoryStore;
 import com.intelliReader.storage.Store;
@@ -22,9 +23,9 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
 
     public void testAddFeedsUsingInMemoryStore()
     {
-        Feed f1 = new Feed("stock's market?",null," economic news",null,null,null);
-        Feed f2 = new Feed("sports :nba+",null," nba results",null,null,null);
-        Feed f3 = new Feed("wall street Is good ",null," flash boy stock",null,null,null);
+        FeedMessage f1 = new FeedMessage("stock market"," economic news");
+        FeedMessage f2 = new FeedMessage("sports nba"," nba results");
+        FeedMessage f3 = new FeedMessage("wall street "," flash boy stock");
 
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                                                                     new InMemoryStore<String, Double>(),
@@ -66,9 +67,9 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
 
     public void testRanking()
     {
-        Feed f1 = new Feed("stock market",null," economic news",null,null,null);
-        Feed f2 = new Feed("sports nba",null," nba results",null,null,null);
-        Feed f3 = new Feed("wall street ",null," flash boy stock",null,null,null);
+        FeedMessage f1 = new FeedMessage("stock market"," economic news");
+        FeedMessage f2 = new FeedMessage("sports nba"," nba results");
+        FeedMessage f3 = new FeedMessage("wall street "," flash boy stock");
 
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                                             new InMemoryStore<String, Double>(),
@@ -87,27 +88,29 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
         model.addFeed(f3, april21th);
 
 
-        Feed t1 = new Feed("china digest",null," ",null,null,null);
-        Feed t2 = new Feed("nba latest",null," ",null,null,null);
-        Feed t3 = new Feed("stock overview",null," ",null,null,null);
 
-        List<Feed> lst = new ArrayList<Feed>();
+        FeedMessage t1 = new FeedMessage("china digest"," ");
+        FeedMessage t2 = new FeedMessage("nba latest"," ");
+        FeedMessage t3 = new FeedMessage("stock overview"," ");
+
+        List<FeedMessage> lst = new ArrayList<FeedMessage>();
         lst.add(t1);
         lst.add(t2);
         lst.add(t3);
 
-        List<Feed> rankedLst = model.rankFeeds(lst,april21th);
+        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedLst = model.rankFeeds(lst, april21th);
 
-        assertEquals("stock overview",rankedLst.get(2).getTitle());
-        assertEquals("nba latest",rankedLst.get(1).getTitle());
-        assertEquals("china digest",rankedLst.get(0).getTitle());
+        assertEquals("stock overview",rankedLst.get(0).getMsg().getTitle());
+        assertEquals("nba latest",rankedLst.get(1).getMsg().getTitle());
+        assertEquals("china digest",rankedLst.get(2).getMsg().getTitle());
+
     }
 
     public void testAddFeedsAndRankingUsingBDBStore()
     {
-        Feed f1 = new Feed("stock market",null," economic news",null,null,null);
-        Feed f2 = new Feed("sports nba",null," nba results",null,null,null);
-        Feed f3 = new Feed("wall street ",null," flash boy stock",null,null,null);
+        FeedMessage f1 = new FeedMessage("stock market"," economic news");
+        FeedMessage f2 = new FeedMessage("sports nba"," nba results");
+        FeedMessage f3 = new FeedMessage("wall street "," flash boy stock");
 
         String projRoot = System.getProperty("user.dir");
         String dbPath = projRoot + "/src/test/resources/dbEnv";
@@ -142,20 +145,20 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
         model.addFeed(f3, april21th);
 
 
-        Feed t1 = new Feed("china digest",null," ",null,null,null);
-        Feed t2 = new Feed("nba latest",null," ",null,null,null);
-        Feed t3 = new Feed("stock overview",null," ",null,null,null);
+        FeedMessage t1 = new FeedMessage("china digest"," ");
+        FeedMessage t2 = new FeedMessage("nba latest"," ");
+        FeedMessage t3 = new FeedMessage("stock overview"," ");
 
-        List<Feed> lst = new ArrayList<Feed>();
+        List<FeedMessage> lst = new ArrayList<FeedMessage>();
         lst.add(t1);
         lst.add(t2);
         lst.add(t3);
 
-        List<Feed> rankedLst = model.rankFeeds(lst,april21th);
+        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedLst = model.rankFeeds(lst, april21th);
 
-        assertEquals("stock overview",rankedLst.get(2).getTitle());
-        assertEquals("nba latest",rankedLst.get(1).getTitle());
-        assertEquals("china digest",rankedLst.get(0).getTitle());
+        assertEquals("stock overview",rankedLst.get(0).getMsg().getTitle());
+        assertEquals("nba latest",rankedLst.get(1).getMsg().getTitle());
+        assertEquals("china digest",rankedLst.get(2).getMsg().getTitle());
     }
 
 }

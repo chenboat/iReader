@@ -1,4 +1,4 @@
-package test.berkeleydb;
+package berkeleydb;
 
 import com.intelliReader.storage.BerkelyDBStore;
 import junit.framework.TestCase;

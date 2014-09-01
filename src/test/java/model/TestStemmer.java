@@ -1,4 +1,4 @@
-package test.model;
+package model;
 
 import junit.framework.TestCase;
 import com.intelliReader.model.Stemmer;

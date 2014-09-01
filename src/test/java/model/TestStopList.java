@@ -1,4 +1,4 @@
-package test.model;
+package model;
 
 import com.intelliReader.model.StopWordFilter;
 import junit.framework.TestCase;
