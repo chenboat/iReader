@@ -3,7 +3,6 @@ package model;
 import com.intelliReader.model.KeywordBasedFeedRelevanceModel;
 import com.intelliReader.model.Stemmer;
 import com.intelliReader.model.StopWordFilter;
-import com.intelliReader.newsfeed.Feed;
 import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.storage.BerkelyDBStore;
 import com.intelliReader.storage.InMemoryStore;

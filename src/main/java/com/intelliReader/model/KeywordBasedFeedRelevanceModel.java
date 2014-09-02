@@ -85,7 +85,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                     {
                         assert  wordLastUpdatedDates.get(w) != null;
                         // Taking into consideration of time lapses
-                        score += wordScores.get(w) * Math.pow(0.5,timeLapseInDays(wordLastUpdatedDates.get(w),date));
+                        score += ModelUtil.exponentialDecayScore(wordScores.get(w),wordLastUpdatedDates.get(w),date);
                     }
                 }catch (Exception e)
                 {
@@ -117,7 +117,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                     assert viewDate.after(prevDate) || viewDate.equals(prevDate);
 
                     double score = wordScores.get(w);
-                    score = score * Math.pow(0.5,timeLapseInDays(prevDate,viewDate)) + 1.0;
+                    score = ModelUtil.exponentialDecayScore(score,prevDate,viewDate) + 1.0;
 
                     wordScores.put(w,score);
                     wordLastUpdatedDates.put(w,viewDate);
@@ -140,14 +140,6 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
         stemmer.add(word.toCharArray(),word.length());
         stemmer.stem();
         return stemmer.toString();
-    }
-
-    private int timeLapseInDays(Date prev, Date now)
-    {
-        assert now.after(prev) || prev.equals(now);
-        long timeLapseInMiscSec = now.getTime() - prev.getTime();
-        return (int) (timeLapseInMiscSec / (1000 * 3600 * 24));
-
     }
 
     public class ScoredFeedMessage implements Comparable<ScoredFeedMessage>
