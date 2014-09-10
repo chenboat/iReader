@@ -31,11 +31,21 @@ import java.util.*;
 
 
 public class JettyServer extends ServletContextHandler {
+    private KeywordBasedFeedRelevanceModel model;
+    private String rankListHTML; // this is the HTML which lists all feed messages in reverse scores
+    private String sectionHTML; // this is the HTML which lists each feed with its message in a separate section
+
     public KeywordBasedFeedRelevanceModel getModel() {
         return model;
     }
 
-    private KeywordBasedFeedRelevanceModel model;
+    public String getRankListHTML() {
+        return rankListHTML;
+    }
+
+    public String getSectionHTML() {
+        return sectionHTML;
+    }
 
     public JettyServer() throws Exception {
         initModel();
@@ -43,6 +53,7 @@ public class JettyServer extends ServletContextHandler {
 
     private void initModel() throws Exception {
         String projRoot = System.getProperty("user.dir");
+        // First load the word and score info stored in bdb
         String dbPath = projRoot + "/src/main/resources/iReader";
         System.out.println("DBPath:" + dbPath);
         BerkelyDBStore<String, Double> wordScoresStore = new BerkelyDBStore<String, Double>(dbPath, String.class, Double.class, "scoreTable" );
@@ -53,6 +64,51 @@ public class JettyServer extends ServletContextHandler {
                 wordLastUpdatedDatesStore,
                 new StopWordFilter(),
                 new Stemmer());
+
+        // Next fetch the latest feed messages and build the html tags
+        StringBuffer sb = new StringBuffer();
+        for(String rss: RSSSources.feeds.keySet())
+        {
+            RSSFeedParser parser = new RSSFeedParser(rss);
+            Feed feed = parser.readFeed();
+            List<FeedMessage> messages = feed.getMessages();
+            sb = sb.append("<p class=\"heading\">" + RSSSources.feeds.get(rss) + "</p>\n");
+            sb = sb.append("<div class=\"content\">\n");
+            for(FeedMessage message:messages)
+            {
+                sb = sb.append("<p><a onclick=\"sendText(this)\" href=\"" +
+                        message.getLink() + "\">"+message.getTitle()+"</a>" +
+                        "<small>" + message.getDescription() +"</small></p>\n" );
+            }
+            sb = sb.append("</div>\n");
+        }
+        sectionHTML = sb.toString();
+
+        sb = new StringBuffer();
+
+        // Compute the scores for each article and sort the list the scores
+        List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
+        for(String rss: RSSSources.feeds.keySet()){
+            RSSFeedParser parser = new RSSFeedParser(rss);
+            Feed feed = parser.readFeed();
+            List<FeedMessage> messages = feed.getMessages();
+            for(FeedMessage message:messages)
+            {
+                feedMsgs.add(message);
+            }
+        }
+        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
+                model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
+
+        for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
+            FeedMessage message = msg.getMsg();
+            sb = sb.append("<p><a href=\"" + message.getLink() + "\">"+message.getTitle()+"</a>" +
+                    "(" + msg.getScore() + ")" +
+                    "<small>" + message.getDescription() +"</small></p>\n" );
+
+        }
+        rankListHTML = sb.toString();
+
     }
 
     public void doHandle(String target, Request baseRequest, HttpServletRequest request,
@@ -80,10 +136,10 @@ public class JettyServer extends ServletContextHandler {
         CountingPage cp = new CountingPage(ajaxHandler.getModel());
         cp.setContextPath("/count");
 
-        FrontPage frontPage = new FrontPage();
+        FrontPage frontPage = new FrontPage(ajaxHandler.getSectionHTML());
         frontPage.setContextPath("/");
 
-        RankedPage rankedPage = new RankedPage(ajaxHandler.getModel());
+        RankedPage rankedPage = new RankedPage(ajaxHandler.getModel(),ajaxHandler.getRankListHTML());
         rankedPage.setContextPath("/rank");
 
         ContextHandlerCollection handlers = new ContextHandlerCollection();

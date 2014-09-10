@@ -20,6 +20,11 @@ import java.util.List;
  * Time: 4:34 PM
  */
 class FrontPage extends ServletContextHandler {
+    private final String sectionHTML;
+
+    public FrontPage(String html){
+        sectionHTML = html;
+    }
     @Override
     public void doHandle(String target,
                          Request baseRequest,
@@ -32,22 +37,7 @@ class FrontPage extends ServletContextHandler {
         response.setHeader("Access-Control-Allow-Origin", "*");
         baseRequest.setHandled(true);
         response.getWriter().println(htmlPageHeader);
-
-        for(String rss: RSSSources.feeds.keySet())
-        {
-            RSSFeedParser parser = new RSSFeedParser(rss);
-            Feed feed = parser.readFeed();
-            List<FeedMessage> messages = feed.getMessages();
-            response.getWriter().println("<p class=\"heading\">" + RSSSources.feeds.get(rss) + "</p>");
-            response.getWriter().println("<div class=\"content\">");
-            for(FeedMessage message:messages)
-            {
-                response.getWriter().println("<p><a onclick=\"sendText(this)\" href=\"" +
-                        message.getLink() + "\">"+message.getTitle()+"</a>" +
-                        "<small>" + message.getDescription() +"</small></p>" );
-            }
-            response.getWriter().println("</div>");
-        }
+        response.getWriter().println(sectionHTML);
         response.getWriter().println("</div></body>\n" + "</html>");
     }
 

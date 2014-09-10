@@ -26,10 +26,12 @@ import java.util.List;
  */
 class RankedPage extends ServletContextHandler {
     private final KeywordBasedFeedRelevanceModel model;
+    private final String rankHTML;
 
-    public RankedPage(KeywordBasedFeedRelevanceModel model)
+    public RankedPage(KeywordBasedFeedRelevanceModel model, String html)
     {
         this.model = model;
+        this.rankHTML = html;
     }
     @Override
     public void doHandle(String target,
@@ -39,28 +41,7 @@ class RankedPage extends ServletContextHandler {
             throws IOException, ServletException
     {
         HTMLUtil.setHTMLPagePrelude(baseRequest,response);
-        // Compute the scores for each article and sort the list the scores
-        List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
-        for(String rss: RSSSources.feeds.keySet()){
-            RSSFeedParser parser = new RSSFeedParser(rss);
-            Feed feed = parser.readFeed();
-            List<FeedMessage> messages = feed.getMessages();
-            for(FeedMessage message:messages)
-            {
-                feedMsgs.add(message);
-            }
-        }
-        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
-                model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-
-        for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
-            FeedMessage message = msg.getMsg();
-            response.getWriter().println("<p><a href=\"" + message.getLink() + "\">"+message.getTitle()+"</a>" +
-                    "(" + msg.getScore() + ")" +
-                    "<small>" + message.getDescription() +"</small></p>" );
-
-        }
-
+        response.getWriter().println(rankHTML);
         HTMLUtil.setHTMLPageEpilogue(response);
     }
 

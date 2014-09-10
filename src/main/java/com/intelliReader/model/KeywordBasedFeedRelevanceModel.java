@@ -4,6 +4,8 @@ import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.storage.Store;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,6 +29,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     StopWordFilter stopWordFilter;
     Stemmer stemmer;
     static String[] EMPTY_STRING = new String[0];
+    Logger log = Logger.getLogger(KeywordBasedFeedRelevanceModel.class.getName());
 
     public Store<String, Double> getWordScores() {
         return wordScores;
@@ -71,6 +74,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
         {
             double score = 0;
             String desc = f.getDescription() + " " + f.getTitle();
+            log.log(Level.WARNING, desc);
             for(String word : tokenize(desc.trim()))
             {
                 word = word.toLowerCase();
@@ -85,7 +89,9 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                     {
                         assert  wordLastUpdatedDates.get(w) != null;
                         // Taking into consideration of time lapses
-                        score += ModelUtil.exponentialDecayScore(wordScores.get(w),wordLastUpdatedDates.get(w),date);
+                        double wScore = ModelUtil.exponentialDecayScore(wordScores.get(w),wordLastUpdatedDates.get(w),date);
+                        log.warning("\t"+ w + ":" +  + wordScores.get(w) + "|" + wScore);
+                        score += wScore;
                     }
                 }catch (Exception e)
                 {

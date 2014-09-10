@@ -32,6 +32,7 @@ public class StopWordFilter {
    */
 
    public static final String[] stopWordLst = {
+            "",
             "a",
             "a's",
             "able",
@@ -332,6 +333,7 @@ public class StopWordFilter {
             "novel",
             "now",
             "nowhere",
+            "null",
             "obviously",
             "of",
             "off",
