@@ -87,6 +87,7 @@ public class JettyServer extends ServletContextHandler {
         sb = new StringBuffer();
 
         // Compute the scores for each article and sort the list the scores
+        Set<String> msgHash = new HashSet<String>();
         List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
         for(String rss: RSSSources.feeds.keySet()){
             RSSFeedParser parser = new RSSFeedParser(rss);
@@ -94,7 +95,10 @@ public class JettyServer extends ServletContextHandler {
             List<FeedMessage> messages = feed.getMessages();
             for(FeedMessage message:messages)
             {
-                feedMsgs.add(message);
+                if(!msgHash.contains(message.getTitle())){   // remove the duplicates
+                    msgHash.add(message.getTitle());
+                    feedMsgs.add(message);
+                }
             }
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =

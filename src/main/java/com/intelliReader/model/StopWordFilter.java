@@ -386,6 +386,7 @@ public class StopWordFilter {
             "relatively",
             "respectively",
             "right",
+            "s",
             "said",
             "same",
             "saw",
