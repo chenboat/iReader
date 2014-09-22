@@ -8,7 +8,6 @@ import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.newsfeed.RSSFeedParser;
 import com.intelliReader.newsfeed.RSSSources;
 import com.intelliReader.storage.BerkelyDBStore;
-import com.intelliReader.storage.Store;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -106,8 +105,9 @@ public class JettyServer extends ServletContextHandler {
 
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
-            sb = sb.append("<p><a href=\"" + message.getLink() + "\">"+message.getTitle()+"</a>" +
-                    "(" + msg.getScore() + ")" +
+            sb = sb.append("<p><a onclick=\"sendText(this)\" href=\""
+                    + message.getLink() + "\">"+message.getTitle()+"</a>"
+                    + "(" + msg.getScore() + ")" +
                     "<small>" + message.getDescription() +"</small></p>\n" );
 
         }
@@ -140,7 +140,7 @@ public class JettyServer extends ServletContextHandler {
         CountingPage cp = new CountingPage(ajaxHandler.getModel());
         cp.setContextPath("/count");
 
-        FrontPage frontPage = new FrontPage(ajaxHandler.getSectionHTML());
+        FrontPage frontPage = new FrontPage(ajaxHandler.getSectionHTML(), ajaxHandler.getRankListHTML());
         frontPage.setContextPath("/");
 
         RankedPage rankedPage = new RankedPage(ajaxHandler.getModel(),ajaxHandler.getRankListHTML());

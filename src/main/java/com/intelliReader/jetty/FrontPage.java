@@ -1,9 +1,5 @@
 package com.intelliReader.jetty;
 
-import com.intelliReader.newsfeed.Feed;
-import com.intelliReader.newsfeed.FeedMessage;
-import com.intelliReader.newsfeed.RSSFeedParser;
-import com.intelliReader.newsfeed.RSSSources;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -11,7 +7,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,9 +16,11 @@ import java.util.List;
  */
 class FrontPage extends ServletContextHandler {
     private final String sectionHTML;
+    private final String rankedListHTML; // the HTML for a ranked list of feed messages
 
-    public FrontPage(String html){
-        sectionHTML = html;
+    public FrontPage(String sectionHtml, String rHTML){
+        sectionHTML = sectionHtml;
+        rankedListHTML = rHTML;
     }
     @Override
     public void doHandle(String target,
@@ -38,7 +35,7 @@ class FrontPage extends ServletContextHandler {
         baseRequest.setHandled(true);
         response.getWriter().println(htmlPageHeader);
         response.getWriter().println(sectionHTML);
-        response.getWriter().println("</div></body>\n" + "</html>");
+        response.getWriter().println("</div><div>" + rankedListHTML + "</div></body>\n" + "</html>");
     }
 
     String htmlPageHeader = "<!DOCTYPE html><html>\n" +
@@ -68,7 +65,9 @@ class FrontPage extends ServletContextHandler {
             "    </script>\n" +
             "</head>\n" +
             "<body>" +
-            "<div style=\"column-count:4;-moz-column-count:4; /* Firefox */\n" +
+            "<div style=\"column-count:2;-moz-column-count:2; /* Firefox */\n" +    // the container div which has
+            "-webkit-column-count:2; /* Safari and Chrome */\">" +                  // two divisions: sections and rank
+            "<div style=\"column-count:4;-moz-column-count:4; /* Firefox */\n" +    // the first nested div for sections
             "-webkit-column-count:4; /* Safari and Chrome */\">";
 
 }
