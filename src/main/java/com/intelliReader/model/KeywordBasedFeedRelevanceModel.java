@@ -75,6 +75,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
             double score = 0;
             String desc = f.getDescription() + " " + f.getTitle();
             log.log(Level.WARNING, desc);
+            Map<String, Double> wordsWithScores = new HashMap<String, Double>();
             for(String word : tokenize(desc.trim()))
             {
                 word = word.toLowerCase();
@@ -92,13 +93,14 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                         double wScore = ModelUtil.exponentialDecayScore(wordScores.get(w),wordLastUpdatedDates.get(w),date);
                         log.warning("\t"+ w + ":" +  + wordScores.get(w) + "|" + wScore);
                         score += wScore;
+                        wordsWithScores.put(w,wScore);
                     }
                 }catch (Exception e)
                 {
                     e.printStackTrace();
                 }
             }
-            lst.add(new ScoredFeedMessage(score,f));
+            lst.add(new ScoredFeedMessage(score,f,wordsWithScores));
         }
 
         Collections.sort(lst,Collections.reverseOrder());
@@ -152,6 +154,15 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     {
         FeedMessage msg;
         double score;
+        Map<String, Double> wordWithScores; // a set of words in the message with scores: all chars are in lower-case
+
+        public Map<String, Double> getWordWithScores() {
+            return wordWithScores;
+        }
+
+        public void setWordWithScores(Map<String, Double> wordWithScores) {
+            this.wordWithScores = wordWithScores;
+        }
 
         public double getScore() {
             return score;
@@ -169,11 +180,13 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
             this.msg = msg;
         }
 
-        ScoredFeedMessage(double s, FeedMessage m)
+        ScoredFeedMessage(double s, FeedMessage m, Map<String, Double> words)
         {
             score = s;
             msg = m;
+            wordWithScores = words;
         }
+
         @Override
         public int compareTo(ScoredFeedMessage scoredFeed) {
             if(this.score < scoredFeed.score)

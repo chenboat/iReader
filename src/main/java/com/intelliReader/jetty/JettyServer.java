@@ -105,14 +105,29 @@ public class JettyServer extends ServletContextHandler {
 
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
+            Map<String,Double> wordScores = msg.getWordWithScores();
+            String tipOverText = getScores(wordScores);
             sb = sb.append("<p><a onclick=\"sendText(this)\" href=\""
-                    + message.getLink() + "\">"+message.getTitle()+"</a>"
+                    + message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>"
                     + "(" + msg.getScore() + ")" +
                     "<small>" + message.getDescription() +"</small></p>\n" );
 
         }
         rankListHTML = sb.toString();
 
+    }
+
+    private String getScores(Map<String,Double> wordScores) {
+        StringBuffer sb = new StringBuffer();
+        List<Pair> lst = new ArrayList<Pair>();
+        for(String s: wordScores.keySet()){
+            lst.add(new Pair(s,wordScores.get(s)));
+        }
+        Collections.sort(lst);
+        for(Pair p: lst){
+            sb = sb.append(p.k).append(":").append(p.s).append("|");
+        }
+        return sb.toString();
     }
 
     public void doHandle(String target, Request baseRequest, HttpServletRequest request,
