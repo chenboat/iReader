@@ -95,8 +95,8 @@ class FrontPage extends ServletContextHandler {
             imageCSSStyle +
             "</head>\n" +
             "<body>" +
-            "<div style=\"column-count:2;-moz-column-count:2; /* Firefox */\n" +    // the container div which has
-            "-webkit-column-count:2; /* Safari and Chrome */\">" +                  // two divisions: sections and rank
+            "<div style=\"column-count:1;-moz-column-count:1; /* Firefox */\n" +    // the container div which has
+            "-webkit-column-count:1; /* Safari and Chrome */\">" +                  // 2 divisions: sections and rank
             "<div style=\"column-count:4;-moz-column-count:4; /* Firefox */\n" +    // the first nested div for sections
             "-webkit-column-count:4; /* Safari and Chrome */\">";
 
