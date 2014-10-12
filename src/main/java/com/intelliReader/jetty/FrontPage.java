@@ -38,7 +38,36 @@ class FrontPage extends ServletContextHandler {
         response.getWriter().println("</div><div>" + rankedListHTML + "</div></body>\n" + "</html>");
     }
 
-    String htmlPageHeader = "<!DOCTYPE html><html>\n" +
+    private static String imageCSSStyle = "<style>\n" +
+            "div.img {\n" +
+            "    margin: 5px;\n" +
+            "    padding: 5px;\n" +
+            "    border: 1px solid #0000ff;\n" +
+            "    height: auto;\n" +
+            "    width: auto;\n" +
+            "    float: left;\n" +
+            "    text-align: center;\n" +
+            "}\n" +
+            "\n" +
+            "div.img img {\n" +
+            "    display: inline;\n" +
+            "    margin: 5px;\n" +
+            "    border: 1px solid #ffffff;\n" +
+            "}\n" +
+            "\n" +
+            "div.img a:hover img {\n" +
+            "    border:1px solid #0000ff;\n" +
+            "}\n" +
+            "\n" +
+            "div.desc {\n" +
+            "    text-align: left;\n" +
+            "    font-weight: normal;\n" +
+            "    width: 150px;\n" +
+            "    margin: 5px;\n" +
+            "}\n" +
+            "</style>";
+
+    private static String htmlPageHeader = "<!DOCTYPE html><html>\n" +
             "<head>\n" +
             "    <meta charset=\"utf-8\"/>\n" +
             "    <title>iReader</title>\n" +
@@ -63,6 +92,7 @@ class FrontPage extends ServletContextHandler {
             "               }});" +
             "     }\n" +
             "    </script>\n" +
+            imageCSSStyle +
             "</head>\n" +
             "<body>" +
             "<div style=\"column-count:2;-moz-column-count:2; /* Firefox */\n" +    // the container div which has

@@ -102,26 +102,42 @@ public class JettyServer extends ServletContextHandler {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = 50; // Add pic only to the top 50 feed msg
+        int topK = 300; // Add pic only to the top 50 feed msg
         int cnt = 0;
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
             Map<String,Double> wordScores = msg.getWordWithScores();
             String tipOverText = getScores(wordScores);
-            String picURL = null;
-            if (cnt < topK)
+            String picURL;
+            if (cnt < topK) {
                 picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
-            if(picURL == null){     // if the feed msg does not have a pic, just add the link
-                sb = sb.append("<li><a onclick=\"sendText(this)\" href=\""
-                    + message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>"
-                    + "(" + msg.getScore() + ")" +
-                    "<small>" + message.getDescription() +"</small></li>\n" );
-            }else{ // otherwise, add both the link and the pic
-                sb = sb.append("<li>" + "<img src=\"" + picURL + "\" height=\"60\" width=\"100\">"
-                    + "<a onclick=\"sendText(this)\" href=\""
-                    + message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>"
-                    + "(" + msg.getScore() + ")" +
-                        "<small>" + message.getDescription() +"</small></li>\n" );
+                if(picURL == null){     // if the feed msg does not have a pic, just add the link
+                    sb = sb.append("<div class=\"img\">" +
+                            "<div class=\"desc\">" + // description of the picture
+                            "<a onclick=\"sendText(this)\" href=\"" +
+                            message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>" +
+                            "(" + String.format("%.2f", msg.getScore()) + ")" +
+                            "<small>" + message.getDescription() +"</small>" +
+                            "</div>" +
+                            "</div>");
+                }else{ // otherwise, add both the link and the pic
+                    sb = sb.append("<div class=\"img\">" +
+                                "<a>\n" +
+                                "    <img src=\""+ picURL + "\" width=\"140\" height=\"114\">\n" +
+                                "</a>" + // pic info
+                                "<div class=\"desc\">" + // description of the picture
+                                "<a onclick=\"sendText(this)\" href=\"" +
+                                message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>" +
+                                "(" + String.format("%.2f", msg.getScore()) + ")" +
+                                "<small>" + message.getDescription() +"</small>" +
+                                "</div>" +
+                                "</div>");
+                }
+            }else {
+                sb = sb.append("<p><a onclick=\"sendText(this)\" href=\""
+                        + message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>"
+                        + "(" + String.format("%.2f", msg.getScore()) + ")" +
+                        "<small>" + message.getDescription() +"</small></p>\n" );
             }
             cnt++;
         }
