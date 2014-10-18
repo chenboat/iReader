@@ -31,8 +31,13 @@ import java.util.*;
 
 public class JettyServer extends ServletContextHandler {
     private KeywordBasedFeedRelevanceModel model;
+    private BerkelyDBStore<String, Date> visitedFeedMsgTitleStore; // this is a store which store all articles viewed
     private String rankListHTML; // this is the HTML which lists all feed messages in reverse scores
     private String sectionHTML; // this is the HTML which lists each feed with its message in a separate section
+
+    public BerkelyDBStore<String, Date> getVisitedFeedMsgTitleStore() {
+        return visitedFeedMsgTitleStore;
+    }
 
     public KeywordBasedFeedRelevanceModel getModel() {
         return model;
@@ -57,6 +62,7 @@ public class JettyServer extends ServletContextHandler {
         System.out.println("DBPath:" + dbPath);
         BerkelyDBStore<String, Double> wordScoresStore = new BerkelyDBStore<String, Double>(dbPath, String.class, Double.class, "scoreTable" );
         BerkelyDBStore<String, Date> wordLastUpdatedDatesStore = new BerkelyDBStore<String, Date>(dbPath, String.class, Date.class, "dateTable");
+        this.visitedFeedMsgTitleStore =  new BerkelyDBStore<String, Date>(dbPath,String.class,Date.class,"titleTable");
         System.out.println("Word store size:" + wordScoresStore.getKeys().size());
         model = new KeywordBasedFeedRelevanceModel(
                 wordScoresStore,
@@ -94,7 +100,8 @@ public class JettyServer extends ServletContextHandler {
             List<FeedMessage> messages = feed.getMessages();
             for(FeedMessage message:messages)
             {
-                if(!msgHash.contains(message.getTitle())){   // remove the duplicates
+                if(visitedFeedMsgTitleStore.get(message.getTitle()) == null &&
+                        !msgHash.contains(message.getTitle())){   // remove the duplicates and visited feed messages
                     msgHash.add(message.getTitle());
                     feedMsgs.add(message);
                 }
@@ -102,7 +109,7 @@ public class JettyServer extends ServletContextHandler {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = 200; // Add pic only to the top 50 feed msg
+        int topK = 250; // Add pic only to the top 50 feed msg
         int cnt = 0;
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
@@ -163,7 +170,10 @@ public class JettyServer extends ServletContextHandler {
         System.out.println(request.getRequestURL());
         String title = request.getParameter("id");
         System.out.println(title);
-        model.addFeed(new FeedMessage(title, null), Calendar.getInstance().getTime());
+        Date date = Calendar.getInstance().getTime();
+        model.addFeed(new FeedMessage(title, null), date);
+        this.visitedFeedMsgTitleStore.put(title, date);
+        this.visitedFeedMsgTitleStore.sync();
         response.setContentType("text/xml");
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -189,8 +199,11 @@ public class JettyServer extends ServletContextHandler {
         RankedPage rankedPage = new RankedPage(ajaxHandler.getModel(),ajaxHandler.getRankListHTML());
         rankedPage.setContextPath("/rank");
 
+        VisitedPage visitedPage = new VisitedPage(ajaxHandler.getVisitedFeedMsgTitleStore());
+        visitedPage.setContextPath("/v");
+
         ContextHandlerCollection handlers = new ContextHandlerCollection();
-        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp ,rankedPage});
+        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp ,rankedPage,visitedPage});
 
         server.setHandler(handlers);
         server.start();
