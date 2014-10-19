@@ -2,7 +2,12 @@ package com.intelliReader.model;
 
 import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.storage.Store;
+import com.intelliReader.text.TextAnalyzer;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,17 +61,6 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
 
     }
 
-    private String[] tokenize(String s) {
-        if(s == null)
-        {
-            return EMPTY_STRING;
-        }
-        else
-        {
-            return s.split("\\W");
-        }
-
-    }
     @Override
     public List<ScoredFeedMessage> rankFeeds(List<FeedMessage> inputList, Date date) {
         List<ScoredFeedMessage> lst = new ArrayList<ScoredFeedMessage>();
@@ -76,15 +70,8 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
             String desc = f.getDescription() + " " + f.getTitle();
             log.log(Level.WARNING, desc);
             Map<String, Double> wordsWithScores = new HashMap<String, Double>();
-            for(String word : tokenize(desc.trim()))
+            for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
             {
-                word = word.toLowerCase();
-                if(stopWordFilter.isStopWord(word))
-                {
-                    continue;
-                }
-
-                String w = stem(word);
                 try{
                     if(wordScores.get(w) != null)
                     {
@@ -112,11 +99,8 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     public void addFeed(FeedMessage f, Date viewDate) {
         String desc = f.getDescription() + " " + f.getTitle();
 
-        for(String word : tokenize(desc.trim()))
+        for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
         {
-            word = word.toLowerCase();
-            if(stopWordFilter.isStopWord(word)) continue; // a stop word will not be counted
-            String w = stem(word);
             try{
                 if(wordScores.get(w) != null)
                 {
@@ -142,12 +126,6 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
         }
         wordScores.sync();
         wordLastUpdatedDates.sync();
-    }
-
-    private String stem(String word) {
-        stemmer.add(word.toCharArray(),word.length());
-        stemmer.stem();
-        return stemmer.toString();
     }
 
     public class ScoredFeedMessage implements Comparable<ScoredFeedMessage>
