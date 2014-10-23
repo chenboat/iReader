@@ -78,15 +78,19 @@ public class BerkelyDBStore<K extends Serializable,V extends Serializable> imple
     }
 
     @Override
-    public V get(K key) throws UnsupportedEncodingException {
+    public V get(K key){
         DatabaseEntry theKey = new DatabaseEntry();
         keyBinding.objectToEntry(key,theKey);
         DatabaseEntry retrieved = new DatabaseEntry();
         // Perform the get.
-        if (myDatabase.get(null, theKey, retrieved, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-            // Recreate the data String.
-            return (V)valueBinding.entryToObject(retrieved);
-        } else {
+        try{
+            if (myDatabase.get(null, theKey, retrieved, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                // Recreate the data String.
+                return (V)valueBinding.entryToObject(retrieved);
+            } else {
+                return null;
+            }
+        }catch (Exception e){
             return null;
         }
     }
