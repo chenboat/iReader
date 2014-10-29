@@ -106,6 +106,7 @@ public class StopWordFilter {
             "better",
             "between",
             "beyond",
+            "blog",
             "both",
             "brief",
             "but",
