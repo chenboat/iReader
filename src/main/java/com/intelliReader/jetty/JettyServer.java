@@ -17,6 +17,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.util.*;
 
@@ -75,17 +76,28 @@ public class JettyServer extends ServletContextHandler {
         for(String rss: RSSSources.feeds.keySet())
         {
             RSSFeedParser parser = new RSSFeedParser(rss);
-            Feed feed = parser.readFeed();
-            List<FeedMessage> messages = feed.getMessages();
-            sb = sb.append("<p class=\"heading\">" + RSSSources.feeds.get(rss) + "</p>\n");
-            sb = sb.append("<div class=\"content\">\n");
-            for(FeedMessage message:messages)
+            try{
+                Feed feed = parser.readFeed();
+                List<FeedMessage> messages = feed.getMessages();
+                sb.append("<p class=\"heading\">");
+                sb.append(RSSSources.feeds.get(rss));
+                sb.append("</p>\n");
+                sb = sb.append("<div class=\"content\">\n");
+                for(FeedMessage message:messages)
+                {
+                    sb.append("<p><a onclick=\"sendText(this)\" href=\"");
+                    sb.append(message.getLink());
+                    sb.append("\">");
+                    sb.append(message.getTitle());
+                    sb.append("</a>");
+                    sb.append("<small>");
+                    sb.append(message.getDescription());
+                    sb.append("</small></p>\n");
+                }
+                sb = sb.append("</div>\n");
+            }catch (XMLStreamException e)
             {
-                sb = sb.append("<p><a onclick=\"sendText(this)\" href=\"" +
-                        message.getLink() + "\">"+message.getTitle()+"</a>" +
-                        "<small>" + message.getDescription() +"</small></p>\n" );
             }
-            sb = sb.append("</div>\n");
         }
         sectionHTML = sb.toString();
 
@@ -95,16 +107,19 @@ public class JettyServer extends ServletContextHandler {
         Set<String> msgHash = new HashSet<String>();
         List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
         for(String rss: RSSSources.feeds.keySet()){
-            RSSFeedParser parser = new RSSFeedParser(rss);
-            Feed feed = parser.readFeed();
-            List<FeedMessage> messages = feed.getMessages();
-            for(FeedMessage message:messages)
-            {
-                if(visitedFeedMsgTitleStore.get(message.getTitle()) == null &&
-                        !msgHash.contains(message.getTitle())){   // remove the duplicates and visited feed messages
-                    msgHash.add(message.getTitle());
-                    feedMsgs.add(message);
+            try{
+                RSSFeedParser parser = new RSSFeedParser(rss);
+                Feed feed = parser.readFeed();
+                List<FeedMessage> messages = feed.getMessages();
+                for(FeedMessage message:messages)
+                {
+                    if(visitedFeedMsgTitleStore.get(message.getTitle()) == null &&
+                            !msgHash.contains(message.getTitle())){   // remove the duplicates and visited feed messages
+                        msgHash.add(message.getTitle());
+                        feedMsgs.add(message);
+                    }
                 }
+            }catch (XMLStreamException e){
             }
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
@@ -119,32 +134,57 @@ public class JettyServer extends ServletContextHandler {
             if (cnt < topK) {
                 picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
                 if(picURL == null){     // if the feed msg does not have a pic, just add the link
-                    sb = sb.append("<div class=\"img\">" +
-                            "<div class=\"desc\">" + // description of the picture
-                            "<a onclick=\"sendText(this)\" href=\"" +
-                            message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>" +
-                            "(" + String.format("%.2f", msg.getScore()) + ")" +
-                            "<small>" + message.getDescription() +"</small>" +
-                            "</div>" +
-                            "</div>");
+                    sb.append("<div class=\"img\">" + "<div class=\"desc\">" + "<a onclick=\"sendText(this)\" href=\"");
+                    sb.append(message.getLink());
+                    sb.append("\" title=\"");
+                    sb.append(tipOverText);
+                    sb.append("\">");
+                    sb.append(message.getTitle());
+                    sb.append("</a>");
+                    sb.append("(");
+                    sb.append(String.format("%.2f", msg.getScore()));
+                    sb.append(")");
+                    sb.append("<small>");
+                    sb.append(message.getDescription());
+                    sb.append("</small>");
+                    sb.append("</div>");
+                    sb.append("</div>");
                 }else{ // otherwise, add both the link and the pic
-                    sb = sb.append("<div class=\"img\">" +
-                                "<a>\n" +
-                                "    <img src=\""+ picURL + "\" width=\"140\" height=\"114\">\n" +
-                                "</a>" + // pic info
-                                "<div class=\"desc\">" + // description of the picture
-                                "<a onclick=\"sendText(this)\" href=\"" +
-                                message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>" +
-                                "(" + String.format("%.2f", msg.getScore()) + ")" +
-                                "<small>" + message.getDescription() +"</small>" +
-                                "</div>" +
-                                "</div>");
+                    sb.append("<div class=\"img\">" + "<a>\n" + "    <img src=\"");
+                    sb.append(picURL);
+                    sb.append("\" width=\"140\" height=\"114\">\n");
+                    sb.append("</a>");
+                    sb.append("<div class=\"desc\">");
+                    sb.append("<a onclick=\"sendText(this)\" href=\"");
+                    sb.append(message.getLink());
+                    sb.append("\" title=\"");
+                    sb.append(tipOverText);
+                    sb.append("\">");
+                    sb.append(message.getTitle());
+                    sb.append("</a>");
+                    sb.append("(");
+                    sb.append(String.format("%.2f", msg.getScore()));
+                    sb.append(")");
+                    sb.append("<small>");
+                    sb.append(message.getDescription());
+                    sb.append("</small>");
+                    sb.append("</div>");
+                    sb.append("</div>");
                 }
             }else {
-                sb = sb.append("<p><a onclick=\"sendText(this)\" href=\""
-                        + message.getLink() + "\" title=\"" + tipOverText + "\">"+message.getTitle()+"</a>"
-                        + "(" + String.format("%.2f", msg.getScore()) + ")" +
-                        "<small>" + message.getDescription() +"</small></p>\n" );
+                sb.append("<p><a onclick=\"sendText(this)\" href=\"");
+                sb.append(message.getLink());
+                sb.append("\" title=\"");
+                sb.append(tipOverText);
+                sb.append("\">");
+                sb.append(message.getTitle());
+                sb.append("</a>");
+                sb.append("(");
+                sb.append(String.format("%.2f", msg.getScore()));
+                sb.append(")");
+                sb.append("<small>");
+                sb.append(message.getDescription());
+                sb.append("</small></p>\n");
             }
             cnt++;
         }

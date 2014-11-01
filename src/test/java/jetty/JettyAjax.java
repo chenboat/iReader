@@ -14,6 +14,7 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
 
 import com.intelliReader.model.KeywordBasedFeedRelevanceModel;
 import com.intelliReader.model.Stemmer;
@@ -138,14 +139,18 @@ class FrontPage extends ServletContextHandler {
 
         for(String rss: RSSSources.feeds.keySet())
         {
-            RSSFeedParser parser = new RSSFeedParser(rss);
-            Feed feed = parser.readFeed();
-            List<FeedMessage> messages = feed.getMessages();
-            response.getWriter().println("<h4>" + RSSSources.feeds.get(rss) + "</h4>");
-            for(FeedMessage message:messages)
+            try{
+                RSSFeedParser parser = new RSSFeedParser(rss);
+                Feed feed = parser.readFeed();
+                List<FeedMessage> messages = feed.getMessages();
+                response.getWriter().println("<h4>" + RSSSources.feeds.get(rss) + "</h4>");
+                for(FeedMessage message:messages)
+                {
+                    response.getWriter().println("<p><a onclick=\"sendText(this)\" href=\"" +
+                            message.getLink() + "\">"+message.getTitle()+"</a></p>" );
+                }
+            }catch (XMLStreamException e)
             {
-                response.getWriter().println("<p><a onclick=\"sendText(this)\" href=\"" +
-                        message.getLink() + "\">"+message.getTitle()+"</a></p>" );
             }
         }
         response.getWriter().println("</div></body>\n" + "</html>");

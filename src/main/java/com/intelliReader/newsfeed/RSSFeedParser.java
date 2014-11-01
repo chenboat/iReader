@@ -1,5 +1,8 @@
 package com.intelliReader.newsfeed;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.impl.Log4JLogger;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -9,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,6 +31,7 @@ public class RSSFeedParser {
     static final String ITEM = "item";
     static final String PUB_DATE = "pubDate";
     static final String GUID = "guid";
+    Logger log = Logger.getLogger(RSSFeedParser.class.getName());
 
     final URL url;
 
@@ -38,11 +43,11 @@ public class RSSFeedParser {
         }
     }
 
-    public Feed readFeed() {
+    public Feed readFeed() throws XMLStreamException {
         Feed feed = null;
         try {
             boolean isFeedHeader = true;
-            // Set header values intial to the empty string
+            // Set header values initial to the empty string
             String description = "";
             String title = "";
             String link = "";
@@ -111,7 +116,8 @@ public class RSSFeedParser {
                 }
             }
         } catch (XMLStreamException e) {
-            throw new RuntimeException(e);
+            log.warning("Reading the RSS failed for URL:" + url);
+            throw e;
         }
         return feed;
     }

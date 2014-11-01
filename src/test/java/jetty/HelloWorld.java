@@ -11,6 +11,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,8 +25,11 @@ public class HelloWorld extends AbstractHandler {
     private static List<FeedMessage> messages;
     static {
         RSSFeedParser parser = new RSSFeedParser("http://feeds.reuters.com/reuters/technologyNews");
-        Feed feed = parser.readFeed();
-        messages = feed.getMessages();
+        try{
+            Feed feed = parser.readFeed();
+            messages = feed.getMessages();
+        }catch (XMLStreamException e){
+        }
     }
 
     @Override
