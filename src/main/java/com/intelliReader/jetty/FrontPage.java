@@ -84,7 +84,7 @@ class FrontPage extends ServletContextHandler {
             "    </script> " +
             "    <script type=\"text/javascript\">\n" +
             "        function sendText(id) {\n" +
-            "            var title=id.firstChild.data;\n" +
+            "            var title=id.firstChild.data + \" \" + id.parentNode.lastChild.textContent;\n" +
             "            var base = \"./randomBase?t=\" + Math.random() + \"&id=\";\n" +
             "            var uri = base.concat(title);\n" +
             "            $.ajax({type: \"GET\", url: uri,async: false,error: function(xhr, error){\n" +

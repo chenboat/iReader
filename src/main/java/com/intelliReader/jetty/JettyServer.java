@@ -113,8 +113,9 @@ public class JettyServer extends ServletContextHandler {
                 List<FeedMessage> messages = feed.getMessages();
                 for(FeedMessage message:messages)
                 {
-                    if(visitedFeedMsgTitleStore.get(message.getTitle()) == null &&
-                            !msgHash.contains(message.getTitle())){   // remove the duplicates and visited feed messages
+                    if(visitedFeedMsgTitleStore.get(message.getTitle()+ " " + message.getDescription()) == null &&
+                            !msgHash.contains(message.getTitle())){
+                            // remove the duplicates and visited feed messages
                         msgHash.add(message.getTitle());
                         feedMsgs.add(message);
                     }
