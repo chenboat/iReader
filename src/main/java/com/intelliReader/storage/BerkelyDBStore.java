@@ -150,6 +150,13 @@ public class BerkelyDBStore<K extends Serializable,V extends Serializable> imple
         myDatabase.sync();
     }
 
+    @Override
+    public void delete(K key) throws Exception {
+        DatabaseEntry theKey = new DatabaseEntry();
+        keyBinding.objectToEntry(key,theKey);
+        myDatabase.delete(null,theKey);
+    }
+
 
     public void close()
     {

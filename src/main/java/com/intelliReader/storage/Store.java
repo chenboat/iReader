@@ -17,4 +17,6 @@ public interface Store<K,V> {
     public Set<K> getKeys() throws Exception;
     // Persist the data in the store to disk
     public void sync();
+    // Remove the key,value pair
+    public void delete(K key) throws Exception;
 }

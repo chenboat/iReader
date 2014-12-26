@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!-- Declares the root element that allows behaviour to be modified through Angular custom HTML tags. -->
+<html ng-app="stopwordList">
+<head>
+    <title>StopWordList</title>
+    <script src="lib/angular.min.js"></script>
+    <script src="lib/angular-resource.min.js"></script>
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/ui-bootstrap-tpls.min.js"></script>
+    <script src="lib/ng-grid-2.0.11.min.js"></script>
+
+    <script src="script/stopwordList.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="lib/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="lib/ng-grid.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/style.css"/>
+</head>
+
+<body>
+
+<h1>Stopword List form </h1>
+<br>
+
+<!-- Specify a Angular controller script that binds Javascript variables to the feedback messages.-->
+<div class="message" ng-controller="alertMessagesController">
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+</div>
+
+<br>
+
+<!-- Specify a Angular controller script that binds Javascript variables to the grid.-->
+<div class="grid">
+    <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
+    <div ng-controller="stopwordList">
+        <div>
+            <h3>Stopword List</h3>
+        </div>
+        <!-- Binds the grid component to be displayed. -->
+        <div class="gridStyle" ng-grid="gridOptions"></div>
+
+        <!--  Bind the pagination component to be displayed. -->
+        <pagination direction-links="true" boundary-links="true"
+                    total-items="stopwordList.totalResults"
+                    page="stopwordList.currentPage"
+                    items-per-page="stopwordList.pageSize"
+                    on-select-page="refreshGrid(page)">
+        </pagination>
+    </div>
+</div>
+
+<!-- Specify a Angular controller script that binds Javascript variables to the form.-->
+<div class="form" ng-controller="entryFormController">
+    <!-- Verify entry, if there is no id present, that we are Adding a Person -->
+    <div ng-if="entry.id == null">
+        <h3>Add Entry</h3>
+    </div>
+    <!-- Otherwise it's an Edit -->
+    <div ng-if="entry.id != null">
+        <h3>Edit Entry</h3>
+    </div>
+
+    <div>
+        <!-- Specify the function to be called on submit and disable HTML5 validation, since we're using Angular validation-->
+        <form name="entryForm" ng-submit="updateEntry()" novalidate>
+
+            <!-- Display an error if the input is invalid and is dirty (only when someone changes the value) -->
+            <div class="form-group" ng-class="{'has-error' : entryForm.id.$invalid && entryForm.id.$dirty}">
+                <label for="id">id:</label>
+                <!-- Display a check when the field is valid and was modified -->
+                <span ng-class="{'glyphicon glyphicon-ok' : entryForm.id.$valid && entryForm.id.$dirty}"></span>
+
+                <input id="id" name="id" type="text" class="form-control" maxlength="50"
+                       ng-model="entry.id"/>
+
+                <!-- Validation messages to be displayed on required, minlength and maxlength -->
+                <p class="help-block" ng-show="entryForm.id.$error.required">Add Id.</p>
+            </div>
+
+            <!-- Form buttons. The 'Save' button is only enabled when the form is valid. -->
+            <div class="buttons">
+                <button type="button" class="btn btn-primary" ng-click="clearForm()">Clear</button>
+                <button type="submit" class="btn btn-primary" ng-disabled="entryForm.$invalid">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

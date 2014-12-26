@@ -13,6 +13,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -125,7 +126,7 @@ public class JettyServer extends ServletContextHandler {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = 250; // Add pic only to the top 50 feed msg
+        int topK = 300; // Add pic only to the topK feed msg
         int cnt = 0;
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
@@ -228,6 +229,7 @@ public class JettyServer extends ServletContextHandler {
     public static void main(String[] args) throws Exception {
         //TODO: reduce the number of handlers
         Server server = new Server(8081);
+
         JettyServer ajaxHandler = new JettyServer();
         ajaxHandler.setContextPath("/randomBase");
 
@@ -243,8 +245,15 @@ public class JettyServer extends ServletContextHandler {
         VisitedPage visitedPage = new VisitedPage(ajaxHandler.getVisitedFeedMsgTitleStore());
         visitedPage.setContextPath("/v");
 
+        // The stop word store handler
+        WebAppContext stopWordPage = new WebAppContext();
+        stopWordPage.setDescriptor("src/main/webapp/WEB-INF/web.xml");
+        stopWordPage.setResourceBase("src/main/webapp/");
+        stopWordPage.setContextPath("/s");
+        stopWordPage.setParentLoaderPriority(true);
+
         ContextHandlerCollection handlers = new ContextHandlerCollection();
-        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp ,rankedPage,visitedPage});
+        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp ,rankedPage,visitedPage, stopWordPage});
 
         server.setHandler(handlers);
         server.start();

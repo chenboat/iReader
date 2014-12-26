@@ -37,4 +37,9 @@ public class InMemoryStore<K,V> implements Store<K,V>{
     public void sync() {
         // do nothing
     }
+
+    @Override
+    public void delete(K key) throws Exception {
+        map.remove(key);
+    }
 }
