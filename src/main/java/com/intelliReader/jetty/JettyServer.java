@@ -126,7 +126,7 @@ public class JettyServer extends ServletContextHandler {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = 300; // Add pic only to the topK feed msg
+        int topK = 30; // Add pic only to the topK feed msg
         int cnt = 0;
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
