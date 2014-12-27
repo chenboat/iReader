@@ -228,7 +228,7 @@ public class JettyServer extends ServletContextHandler {
 
     public static void main(String[] args) throws Exception {
         //TODO: reduce the number of handlers
-        Server server = new Server(8080);
+        Server server = new Server(Integer.valueOf(System.getenv("PORT")));
 
         JettyServer ajaxHandler = new JettyServer();
         ajaxHandler.setContextPath("/randomBase");
