@@ -126,7 +126,7 @@ public class JettyServer extends ServletContextHandler {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = 30; // Add pic only to the topK feed msg
+        int topK = 10; // Add pic only to the topK feed msg
         int cnt = 0;
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
@@ -228,7 +228,7 @@ public class JettyServer extends ServletContextHandler {
 
     public static void main(String[] args) throws Exception {
         //TODO: reduce the number of handlers
-        Server server = new Server(8081);
+        Server server = new Server(8080);
 
         JettyServer ajaxHandler = new JettyServer();
         ajaxHandler.setContextPath("/randomBase");
