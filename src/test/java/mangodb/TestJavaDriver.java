@@ -61,8 +61,9 @@ public class TestJavaDriver extends TestCase {
 
         client.close();
     }
-
-    public void testInitData() throws Exception {
+    // IMPORTANT: the following is an on-off loading script and should NOT be part of a test suite. Otherwise, it will
+    // cause duplicates in the date set
+    /*public void testInitData() throws Exception {
         String projRoot = System.getProperty("user.dir");
         // First load the word and score info stored in bdb
         String dbPath = projRoot + "/src/main/resources/iReader";
@@ -82,7 +83,7 @@ public class TestJavaDriver extends TestCase {
         loadMongoDB(wordLastUpdatedDatesStore,"dateTable","word","updateDate",db);
         loadMongoDB(visitedFeedMsgTitleStore,"titleTable","title","viewDate",db);
         client.close();
-    }
+    }*/
 
     private void loadMongoDB(BerkelyDBStore<String,?> bdbStore,
                              String tableName,
