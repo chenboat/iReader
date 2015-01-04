@@ -1,5 +1,8 @@
 package com.intelliReader.storage;
 
+import com.mongodb.util.Hash;
+
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -19,4 +22,6 @@ public interface Store<K,V> {
     public void sync();
     // Remove the key,value pair
     public void delete(K key) throws Exception;
+    // Get a snapshot of all the <key,value> pairs in the store
+    public Map<K,V> getAll() throws Exception;
 }

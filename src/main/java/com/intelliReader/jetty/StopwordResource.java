@@ -1,6 +1,7 @@
 package com.intelliReader.jetty;
 
-import com.intelliReader.storage.BerkelyDBStore;
+import com.intelliReader.storage.MongoDBStore;
+import com.intelliReader.storage.Store;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -14,9 +15,9 @@ import java.util.*;
 public class StopwordResource extends Application {
     @GET
     @Path("{id}")
-    public Entry getEntry( @PathParam("id") String id) {
-        if(bdbStore.get(id) != null) {
-            return new Entry(id, bdbStore.get(id).toString());
+    public Entry getEntry( @PathParam("id") String id) throws Exception {
+        if( store.get(id) != null) {
+            return new Entry(id,  store.get(id).toString());
         }else{
             return null;
         }
@@ -26,16 +27,16 @@ public class StopwordResource extends Application {
     public Entry saveEntry(Entry entry) throws Exception{
         assert entry.getId() != null;
         Date d = Calendar.getInstance().getTime();
-        bdbStore.put(entry.getId(),d);
-        bdbStore.sync();
+         store.put(entry.getId(), d);
+         store.sync();
         return new Entry(entry.getId(),d.toString());
     }
 
     @DELETE
     @Path("{id}")
     public void deleteEntry(@PathParam("id") String id) throws Exception{
-        bdbStore.delete(id);
-        bdbStore.sync();
+         store.delete(id);
+         store.sync();
     }
 
     @GET
@@ -74,8 +75,9 @@ public class StopwordResource extends Application {
     private List<Entry> findEntries(int startPosition, int maxResults, String sortFields, String sortDirections)
             throws Exception {
         List<Entry> entries = new ArrayList<Entry>();
-        for(String k: bdbStore.getKeys()){
-            entries.add(new Entry(k,bdbStore.get(k).toString()));
+        Map<String,Date> map = store.getAll();
+        for(String k:  map.keySet()){
+            entries.add(new Entry(k, map.get(k).toString()));
         }
         Collections.sort(entries, new Comparator<Entry>() {
             @Override
@@ -89,12 +91,19 @@ public class StopwordResource extends Application {
 
 
     private Integer countEntries() throws Exception {
-        return bdbStore.getKeys().size();
+        return  store.getKeys().size();
     }
 
-    public static BerkelyDBStore<String, Date> bdbStore =
-            new BerkelyDBStore<String, Date>(System.getProperty("user.dir") + "/src/main/resources/iReader",
-                    String.class, Date.class, "stopwordTable" ); ;
+    public static Store<String, Date> store;
+
+    static {
+        try {
+            store = new MongoDBStore<String, Date>("mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db",
+                    "stopwords", "word", "time");
+        }catch (Exception e){
+            System.exit(1);     //TODO: log it somehow
+        }
+    }
 }
 
 

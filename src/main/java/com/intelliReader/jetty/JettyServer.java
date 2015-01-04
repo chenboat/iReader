@@ -8,6 +8,8 @@ import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.newsfeed.RSSFeedParser;
 import com.intelliReader.newsfeed.RSSSources;
 import com.intelliReader.storage.BerkelyDBStore;
+import com.intelliReader.storage.MongoDBStore;
+import com.intelliReader.storage.Store;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -33,11 +35,11 @@ import java.util.*;
 
 public class JettyServer extends ServletContextHandler {
     private KeywordBasedFeedRelevanceModel model;
-    private BerkelyDBStore<String, Date> visitedFeedMsgTitleStore; // this is a store which store all articles viewed
+    private Store<String, Date> visitedFeedMsgTitleStore; // this is a store which store all articles viewed
     private String rankListHTML; // this is the HTML which lists all feed messages in reverse scores
     private String sectionHTML; // this is the HTML which lists each feed with its message in a separate section
 
-    public BerkelyDBStore<String, Date> getVisitedFeedMsgTitleStore() {
+    public Store<String, Date> getVisitedFeedMsgTitleStore() {
         return visitedFeedMsgTitleStore;
     }
 
@@ -62,14 +64,15 @@ public class JettyServer extends ServletContextHandler {
         // First load the word and score info stored in bdb
         String dbPath = projRoot + "/src/main/resources/iReader";
         System.out.println("DBPath:" + dbPath);
-        BerkelyDBStore<String, Double> wordScoresStore = new BerkelyDBStore<String, Double>(dbPath, String.class, Double.class, "scoreTable" );
-        BerkelyDBStore<String, Date> wordLastUpdatedDatesStore = new BerkelyDBStore<String, Date>(dbPath, String.class, Date.class, "dateTable");
-        this.visitedFeedMsgTitleStore =  new BerkelyDBStore<String, Date>(dbPath,String.class,Date.class,"titleTable");
+        String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
+        Store<String, Double> wordScoresStore = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
+        Store<String, Date> wordLastUpdatedDatesStore = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
+        visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
         System.out.println("Word store size:" + wordScoresStore.getKeys().size());
         model = new KeywordBasedFeedRelevanceModel(
                 wordScoresStore,
                 wordLastUpdatedDatesStore,
-                new StopWordFilter(),
+                new StopWordFilter(new MongoDBStore<String, Date>(dbUri,"stopwords","word","time")),
                 new Stemmer());
 
         // Next fetch the latest feed messages and build the html tags
@@ -214,7 +217,11 @@ public class JettyServer extends ServletContextHandler {
         System.out.println(title);
         Date date = Calendar.getInstance().getTime();
         model.addFeed(new FeedMessage(title, null), date);
-        this.visitedFeedMsgTitleStore.put(title, date);
+        try {
+            visitedFeedMsgTitleStore.put(title, date);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         this.visitedFeedMsgTitleStore.sync();
         response.setContentType("text/xml");
         response.setHeader("Cache-Control", "no-cache");
@@ -228,7 +235,8 @@ public class JettyServer extends ServletContextHandler {
 
     public static void main(String[] args) throws Exception {
         //TODO: reduce the number of handlers
-        Server server = new Server(Integer.valueOf(System.getenv("PORT")));
+        int port = System.getenv("PORT") == null ? 8081 : Integer.valueOf(System.getenv("PORT"));
+        Server server = new Server(port);
 
         JettyServer ajaxHandler = new JettyServer();
         ajaxHandler.setContextPath("/randomBase");

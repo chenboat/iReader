@@ -29,7 +29,7 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                                                                     new InMemoryStore<String, Double>(),
                                                                     new InMemoryStore<String, Date>(),
-                                                                    new StopWordFilter(),
+                                                                    new StopWordFilter(new InMemoryStore<String, Date>()),
                                                                     new Stemmer());
 
         Calendar calendar = Calendar.getInstance();
@@ -73,7 +73,7 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                                             new InMemoryStore<String, Double>(),
                                             new InMemoryStore<String, Date>(),
-                                            new StopWordFilter(),new Stemmer());
+                                            new StopWordFilter(new InMemoryStore<String, Date>()),new Stemmer());
 
         Calendar calendar = Calendar.getInstance();
 
@@ -129,7 +129,7 @@ public class TestKeywordBasedFeedRelevanceModel extends TestCase {
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                 wordScoresStore,
                 wordLastUpdatedDatesStore,
-                new StopWordFilter(),
+                new StopWordFilter(new InMemoryStore<String, Date>()),
                 new Stemmer());
 
         Calendar calendar = Calendar.getInstance();

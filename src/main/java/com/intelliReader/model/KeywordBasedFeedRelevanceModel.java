@@ -33,7 +33,6 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     Store<String,Date> wordLastUpdatedDates;
     StopWordFilter stopWordFilter;
     Stemmer stemmer;
-    static String[] EMPTY_STRING = new String[0];
     Logger log = Logger.getLogger(KeywordBasedFeedRelevanceModel.class.getName());
 
     public Store<String, Double> getWordScores() {
@@ -64,6 +63,15 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     @Override
     public List<ScoredFeedMessage> rankFeeds(List<FeedMessage> inputList, Date date) {
         List<ScoredFeedMessage> lst = new ArrayList<ScoredFeedMessage>();
+        Map<String,Double> wordScoresCache = null;
+        Map<String,Date> wordLastUpdatedDatesCache = null;
+        // caching all the key value map from the underlying stores for faster retrieval
+        try {
+            wordScoresCache = wordScores.getAll();
+            wordLastUpdatedDatesCache = wordLastUpdatedDates.getAll();
+        }catch (Exception e){
+            log.log(Level.SEVERE, "Getting caches from the word stores failed: " + e.toString());
+        }
         for(FeedMessage f: inputList)
         {
             double score = 0;
@@ -73,12 +81,13 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
             for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
             {
                 try{
-                    if(wordScores.get(w) != null)
+                    if(wordScoresCache.get(w) != null)
                     {
-                        assert  wordLastUpdatedDates.get(w) != null;
+                        assert  wordLastUpdatedDatesCache.get(w) != null;
                         // Taking into consideration of time lapses
-                        double wScore = ModelUtil.exponentialDecayScore(wordScores.get(w),wordLastUpdatedDates.get(w),date);
-                        log.warning("\t"+ w + ":" +  + wordScores.get(w) + "|" + wScore);
+                        double wScore = ModelUtil.exponentialDecayScore(wordScoresCache.get(w),
+                                                                        wordLastUpdatedDatesCache.get(w),date);
+                        log.warning("\t"+ w + ":" +  + wordScoresCache.get(w) + "|" + wScore);
                         score += wScore;
                         wordsWithScores.put(w,wScore);
                     }

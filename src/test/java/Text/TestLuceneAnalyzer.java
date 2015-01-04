@@ -2,6 +2,7 @@ package Text;
 
 import com.intelliReader.model.Stemmer;
 import com.intelliReader.model.StopWordFilter;
+import com.intelliReader.storage.InMemoryStore;
 import com.intelliReader.text.TextAnalyzer;
 import junit.framework.TestCase;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
@@ -10,6 +11,7 @@ import org.apache.lucene.util.Attribute;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.jar.Attributes;
 
@@ -32,7 +34,7 @@ public class TestLuceneAnalyzer extends TestCase {
     public void testIReaderAnalyzer() throws IOException {
         String[] arr = TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(
                 "GM's Third-Quarter Global Vehicle Sales Up 2 Percent on Strong China, U.S. Demand",
-                new StopWordFilter(),
+                new StopWordFilter(new InMemoryStore<String, Date>()),
                 new Stemmer()
         );
         for(String s : arr){

@@ -1,10 +1,12 @@
 package com.intelliReader.model;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import com.intelliReader.jetty.StopwordResource;
+import com.intelliReader.storage.Store;
 
 
 /**
@@ -17,10 +19,10 @@ public class StopWordFilter {
    private final Set<String> stopWords = new HashSet<String>();
     private Logger log = Logger.getLogger(StopWordFilter.class.getName());
 
-   public StopWordFilter()
+   public StopWordFilter(Store<String,Date> store)
    {
        try {
-           for(String s: StopwordResource.bdbStore.getKeys())
+           for(String s: store.getKeys())
            {
               stopWords.add(s);
            }

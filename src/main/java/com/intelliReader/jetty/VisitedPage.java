@@ -21,8 +21,8 @@ import java.util.*;
  * A page shows the visited feed message title and their visit time
  */
 public class VisitedPage  extends ServletContextHandler {
-    private final BerkelyDBStore<String, Date> visited;
-    public VisitedPage(BerkelyDBStore<String, Date> v)
+    private final Store<String, Date> visited;
+    public VisitedPage(Store<String, Date> v)
     {
         this.visited = v;
     }

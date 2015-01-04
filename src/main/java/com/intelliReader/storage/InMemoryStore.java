@@ -42,4 +42,9 @@ public class InMemoryStore<K,V> implements Store<K,V>{
     public void delete(K key) throws Exception {
         map.remove(key);
     }
+
+    @Override
+    public Map<K, V> getAll() throws Exception {
+        return map;
+    }
 }

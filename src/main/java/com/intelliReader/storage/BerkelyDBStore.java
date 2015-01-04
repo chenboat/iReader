@@ -9,7 +9,9 @@ import com.sleepycat.je.*;
 import java.io.File;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -155,6 +157,15 @@ public class BerkelyDBStore<K extends Serializable,V extends Serializable> imple
         DatabaseEntry theKey = new DatabaseEntry();
         keyBinding.objectToEntry(key,theKey);
         myDatabase.delete(null,theKey);
+    }
+
+    @Override
+    public Map<K, V> getAll() throws Exception {
+        Map<K,V> map = new HashMap<K, V>();
+        for(K k:this.getKeys()){
+            map.put(k,this.get(k));
+        }
+        return map;
     }
 
 
