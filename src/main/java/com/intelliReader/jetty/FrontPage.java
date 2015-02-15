@@ -1,5 +1,7 @@
 package com.intelliReader.jetty;
 
+import com.intelliReader.storage.MongoDBStore;
+import com.intelliReader.storage.Store;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -15,12 +17,7 @@ import java.io.IOException;
  * Time: 4:34 PM
  */
 class FrontPage extends ServletContextHandler {
-    private final String sectionHTML;
-    private final String rankedListHTML; // the HTML for a ranked list of feed messages
-
-    public FrontPage(String sectionHtml, String rHTML){
-        sectionHTML = sectionHtml;
-        rankedListHTML = rHTML;
+    public FrontPage(){
     }
     @Override
     public void doHandle(String target,
@@ -29,13 +26,32 @@ class FrontPage extends ServletContextHandler {
                          HttpServletResponse response)
             throws IOException, ServletException
     {
+        Store<String, String> sectionHTMLStore = new MongoDBStore<String, String>
+                (JettyServer.dbUri, "sectionTable", "field", "value");
+        String sectionHTML = null;
+        try {
+            sectionHTML = sectionHTMLStore.get(ContentBuilder.SECTION_HTML_COLOUMN_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // TODO: add graceful recovery routine
+        }
+        Store<String, String> rankingHTMLStore =
+                new MongoDBStore<String, String>(JettyServer.dbUri, "rankingHTMLTable", "field", "value");
+        String rankListHTML = null;
+        try {
+            rankListHTML = rankingHTMLStore.get(ContentBuilder.RANKING_HTML_COLUMN_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // TODO: add graceful recovery routine
+        }
+
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader("Access-Control-Allow-Origin", "*");
         baseRequest.setHandled(true);
         response.getWriter().println(htmlPageHeader);
         response.getWriter().println(sectionHTML);
-        response.getWriter().println("</div><div>" + rankedListHTML + "</div></body>\n" + "</html>");
+        response.getWriter().println("</div><div>" + rankListHTML + "</div></body>\n" + "</html>");
     }
 
     private static String imageCSSStyle = "<style>\n" +

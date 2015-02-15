@@ -36,8 +36,7 @@ import java.util.*;
 public class JettyServer extends ServletContextHandler {
     private KeywordBasedFeedRelevanceModel model;
     private Store<String, Date> visitedFeedMsgTitleStore; // this is a store which store all articles viewed
-    private String rankListHTML; // this is the HTML which lists all feed messages in reverse scores
-    private String sectionHTML; // this is the HTML which lists each feed with its message in a separate section
+    public static String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
 
     public Store<String, Date> getVisitedFeedMsgTitleStore() {
         return visitedFeedMsgTitleStore;
@@ -46,168 +45,18 @@ public class JettyServer extends ServletContextHandler {
     public KeywordBasedFeedRelevanceModel getModel() {
         return model;
     }
-
-    public String getRankListHTML() {
-        return rankListHTML;
-    }
-
-    public String getSectionHTML() {
-        return sectionHTML;
-    }
-
     public JettyServer() throws Exception {
         initModel();
     }
 
     private void initModel() throws Exception {
-        String projRoot = System.getProperty("user.dir");
-        // First load the word and score info stored in bdb
-        String dbPath = projRoot + "/src/main/resources/iReader";
-        System.out.println("DBPath:" + dbPath);
-        String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
-        Store<String, Double> wordScoresStore = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
-        Store<String, Date> wordLastUpdatedDatesStore = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
+        // this is a store which store all articles viewed
         visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
-        System.out.println("Word store size:" + wordScoresStore.getKeys().size());
         model = new KeywordBasedFeedRelevanceModel(
-                wordScoresStore,
-                wordLastUpdatedDatesStore,
-                new StopWordFilter(new MongoDBStore<String, Date>(dbUri,"stopwords","word","time")),
-                new Stemmer());
-
-        // Next fetch the latest feed messages and build the html tags
-        StringBuffer sb = new StringBuffer();
-        for(String rss: RSSSources.feeds.keySet())
-        {
-            RSSFeedParser parser = new RSSFeedParser(rss);
-            try{
-                Feed feed = parser.readFeed();
-                List<FeedMessage> messages = feed.getMessages();
-                sb.append("<p class=\"heading\">");
-                sb.append(RSSSources.feeds.get(rss));
-                sb.append("</p>\n");
-                sb = sb.append("<div class=\"content\">\n");
-                for(FeedMessage message:messages)
-                {
-                    sb.append("<p><a onclick=\"sendText(this)\" href=\"");
-                    sb.append(message.getLink());
-                    sb.append("\">");
-                    sb.append(message.getTitle());
-                    sb.append("</a>");
-                    sb.append("<small>");
-                    sb.append(message.getDescription());
-                    sb.append("</small></p>\n");
-                }
-                sb = sb.append("</div>\n");
-            }catch (XMLStreamException e)
-            {
-            }
-        }
-        sectionHTML = sb.toString();
-
-        sb = new StringBuffer();
-
-        // Compute the scores for each article and sort the list the scores
-        Set<String> msgHash = new HashSet<String>();
-        List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
-        for(String rss: RSSSources.feeds.keySet()){
-            try{
-                RSSFeedParser parser = new RSSFeedParser(rss);
-                Feed feed = parser.readFeed();
-                List<FeedMessage> messages = feed.getMessages();
-                for(FeedMessage message:messages)
-                {
-                    if(visitedFeedMsgTitleStore.get(message.getTitle()+ " " + message.getDescription()) == null &&
-                            !msgHash.contains(message.getTitle())){
-                            // remove the duplicates and visited feed messages
-                        msgHash.add(message.getTitle());
-                        feedMsgs.add(message);
-                    }
-                }
-            }catch (XMLStreamException e){
-            }
-        }
-        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
-                model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = 50; // Add pic only to the topK feed msg
-        int cnt = 0;
-        for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
-            FeedMessage message = msg.getMsg();
-            Map<String,Double> wordScores = msg.getWordWithScores();
-            String tipOverText = getScores(wordScores);
-            String picURL;
-            if (cnt < topK) {
-                picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
-                if(picURL == null){     // if the feed msg does not have a pic, just add the link
-                    sb.append("<div class=\"img\">" + "<div class=\"desc\">" + "<a onclick=\"sendText(this)\" href=\"");
-                    sb.append(message.getLink());
-                    sb.append("\" title=\"");
-                    sb.append(tipOverText);
-                    sb.append("\">");
-                    sb.append(message.getTitle());
-                    sb.append("</a>");
-                    sb.append("(");
-                    sb.append(String.format("%.2f", msg.getScore()));
-                    sb.append(")");
-                    sb.append("<small>");
-                    sb.append(message.getDescription());
-                    sb.append("</small>");
-                    sb.append("</div>");
-                    sb.append("</div>");
-                }else{ // otherwise, add both the link and the pic
-                    sb.append("<div class=\"img\">" + "<a>\n" + "    <img src=\"");
-                    sb.append(picURL);
-                    sb.append("\" width=\"140\" height=\"114\">\n");
-                    sb.append("</a>");
-                    sb.append("<div class=\"desc\">");
-                    sb.append("<a onclick=\"sendText(this)\" href=\"");
-                    sb.append(message.getLink());
-                    sb.append("\" title=\"");
-                    sb.append(tipOverText);
-                    sb.append("\">");
-                    sb.append(message.getTitle());
-                    sb.append("</a>");
-                    sb.append("(");
-                    sb.append(String.format("%.2f", msg.getScore()));
-                    sb.append(")");
-                    sb.append("<small>");
-                    sb.append(message.getDescription());
-                    sb.append("</small>");
-                    sb.append("</div>");
-                    sb.append("</div>");
-                }
-            }else {
-                sb.append("<p><a onclick=\"sendText(this)\" href=\"");
-                sb.append(message.getLink());
-                sb.append("\" title=\"");
-                sb.append(tipOverText);
-                sb.append("\">");
-                sb.append(message.getTitle());
-                sb.append("</a>");
-                sb.append("(");
-                sb.append(String.format("%.2f", msg.getScore()));
-                sb.append(")");
-                sb.append("<small>");
-                sb.append(message.getDescription());
-                sb.append("</small></p>\n");
-            }
-            cnt++;
-        }
-        rankListHTML = sb.toString();
-
-    }
-
-    private String getScores(Map<String,Double> wordScores) {
-        StringBuffer sb = new StringBuffer();
-        List<Pair> lst = new ArrayList<Pair>();
-        for(String s: wordScores.keySet()){
-            lst.add(new Pair(s,wordScores.get(s)));
-        }
-        Collections.sort(lst);
-        for(Pair p: lst){
-            sb = sb.append(p.k).append(":").append(p.s).append("|");
-        }
-        return sb.toString();
+                    new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" ),
+                    new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate"),
+                    new StopWordFilter(new MongoDBStore<String, Date>(dbUri,"stopwords","word","time")),
+                    new Stemmer());
     }
 
     public void doHandle(String target, Request baseRequest, HttpServletRequest request,
@@ -234,6 +83,8 @@ public class JettyServer extends ServletContextHandler {
     }
 
     public static void main(String[] args) throws Exception {
+        // Start the content builder thread to build the HTML pages
+        (new ContentBuilder()).start();
         //TODO: reduce the number of handlers
         int port = System.getenv("PORT") == null ? 8081 : Integer.valueOf(System.getenv("PORT"));
         Server server = new Server(port);
@@ -244,24 +95,22 @@ public class JettyServer extends ServletContextHandler {
         CountingPage cp = new CountingPage(ajaxHandler.getModel());
         cp.setContextPath("/count");
 
-        FrontPage frontPage = new FrontPage(ajaxHandler.getSectionHTML(), ajaxHandler.getRankListHTML());
+        FrontPage frontPage = new FrontPage();
         frontPage.setContextPath("/");
-
-        RankedPage rankedPage = new RankedPage(ajaxHandler.getModel(),ajaxHandler.getRankListHTML());
-        rankedPage.setContextPath("/rank");
 
         VisitedPage visitedPage = new VisitedPage(ajaxHandler.getVisitedFeedMsgTitleStore());
         visitedPage.setContextPath("/v");
 
-        // The stop word store handler
-        WebAppContext stopWordPage = new WebAppContext();
-        stopWordPage.setDescriptor("src/main/webapp/WEB-INF/web.xml");
-        stopWordPage.setResourceBase("src/main/webapp/");
-        stopWordPage.setContextPath("/s");
-        stopWordPage.setParentLoaderPriority(true);
+        // The login and registration handler which will become the frontpage later
+        WebAppContext loginPage = new WebAppContext();
+        loginPage.setDescriptor("src/main/webapp/WEB-INF/web.xml");
+        loginPage.setResourceBase("src/main/webapp/");
+        loginPage.setContextPath("/l");
+        loginPage.setParentLoaderPriority(true);
 
         ContextHandlerCollection handlers = new ContextHandlerCollection();
-        handlers.setHandlers(new Handler[] { frontPage, ajaxHandler,cp ,rankedPage,visitedPage, stopWordPage});
+        handlers.setHandlers(new Handler[]
+                { frontPage, ajaxHandler,cp ,visitedPage,loginPage});
 
         server.setHandler(handlers);
         server.start();
