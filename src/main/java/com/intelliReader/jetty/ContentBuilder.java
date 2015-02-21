@@ -32,11 +32,12 @@ public class ContentBuilder extends Thread {
             initSectionModel();
             try {
                 initRankingModel();
+                initPinterestRankingModel();
             } catch (Exception e) {
                 e.printStackTrace();
             }
             try {
-                sleep(1800 * 1000);  // sleep 1800 sec
+                sleep(3600 * 1000);  // sleep 3600 sec
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -152,6 +153,83 @@ public class ContentBuilder extends Thread {
         rankingHTMLStore.put(RANKING_HTML_COLUMN_NAME,rankListHTML);
         rankingHTMLStore.put("time",df.format(new Date()));
     }
+
+    private void initPinterestRankingModel() throws Exception{
+        StringBuilder sb = new StringBuilder();
+        KeywordBasedFeedRelevanceModel model;
+        // this is a store which store all articles viewed
+        String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
+        Store<String, Double> wordScoresStore = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
+        Store<String, Date> wordLastUpdatedDatesStore = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
+        Store<String, Date> visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
+        System.out.println("Word store size:" + wordScoresStore.getKeys().size());
+        model = new KeywordBasedFeedRelevanceModel(
+                wordScoresStore,
+                wordLastUpdatedDatesStore,
+                new StopWordFilter(new MongoDBStore<String, Date>(dbUri,"stopwords","word","time")),
+                new Stemmer());
+
+        // Compute the scores for each article and sort the list the scores
+        Set<String> msgHash = new HashSet<String>();
+        List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
+        for(String rss: RSSSources.feeds.keySet()){
+            try{
+                RSSFeedParser parser = new RSSFeedParser(rss);
+                Feed feed = parser.readFeed();
+                List<FeedMessage> messages = feed.getMessages();
+                for(FeedMessage message:messages)
+                {
+                    if(visitedFeedMsgTitleStore.get(message.getTitle()+ " " + message.getDescription()) == null &&
+                            !msgHash.contains(message.getTitle())){
+                        // remove the duplicates and visited feed messages
+                        msgHash.add(message.getTitle());
+                        feedMsgs.add(message);
+                    }
+                }
+            }catch (XMLStreamException e){
+                e.printStackTrace();
+            }
+        }
+        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
+                model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
+        sb.append("<div id=\"columns\">");
+        for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
+            FeedMessage message = msg.getMsg();
+            Map<String,Double> wordScores = msg.getWordWithScores();
+            String tipOverText = getScores(wordScores);
+            String picURL;
+            picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
+            if(picURL != null){     // only add articles having pics
+                sb.append("<figure>" + "    <img src=\"");
+                sb.append(picURL);
+                sb.append("\">\n");
+                sb.append("<figcaption>");
+                sb.append("<a onclick=\"sendText(this)\" href=\"");
+                sb.append(message.getLink());
+                sb.append("\" title=\"");
+                sb.append(tipOverText);
+                sb.append("\">");
+                sb.append(message.getTitle());
+                sb.append("</a>");
+                sb.append("(");
+                sb.append(String.format("%.2f", msg.getScore()));
+                sb.append(")");
+                sb.append("<small>");
+                sb.append(message.getDescription());
+                sb.append("</small>");
+                sb.append("</figcaption>");
+                sb.append("</figure>");
+            }
+        }
+        sb.append("</div>");
+        String rankListHTML = sb.toString();
+        Store<String, String> rankingHTMLStore =
+                new MongoDBStore<String, String>(dbUri, "pinterestHTMLTable", "field", "value");
+        rankingHTMLStore.put(RANKING_HTML_COLUMN_NAME,rankListHTML);
+        rankingHTMLStore.put("time",df.format(new Date()));
+    }
+
+
     private void initSectionModel(){
         log.info("Build the html page @ " +  Calendar.getInstance());
         try {

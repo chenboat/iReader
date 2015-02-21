@@ -45,14 +45,73 @@ class FrontPage extends ServletContextHandler {
             // TODO: add graceful recovery routine
         }
 
+        Store<String, String> pinterestHTMLStore =
+                new MongoDBStore<String, String>(JettyServer.dbUri, "pinterestHTMLTable", "field", "value");
+        String pinterestHTML = null;
+        try {
+            pinterestHTML = pinterestHTMLStore.get(ContentBuilder.RANKING_HTML_COLUMN_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // TODO: add graceful recovery routine
+        }
+
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader("Access-Control-Allow-Origin", "*");
         baseRequest.setHandled(true);
         response.getWriter().println(htmlPageHeader);
         response.getWriter().println(sectionHTML);
-        response.getWriter().println("</div><div>" + rankListHTML + "</div></body>\n" + "</html>");
+        response.getWriter().println("</div>" +
+                                    Div4Col + pinterestHTML + "</div>" +
+                                    "</div></body>\n" + "</html>");
     }
+    private static String Div4Col = "<div style=\"column-count:4;-moz-column-count:4; /* Firefox */\n" +
+                                        "-webkit-column-count:4; /* Safari and Chrome */\">";
+
+    private static String pinStyle = "#columns {\n" +
+            "\tcolumn-width: 320px;\n" +
+            "\tcolumn-gap: 15px;\n" +
+            "  width: 90%;\n" +
+            "\tmax-width: 1100px;\n" +
+            "\tmargin: 50px auto;\n" +
+            "}\n" +
+            "\n" +
+            "div#columns figure {\n" +
+            "\tbackground: #fefefe;\n" +
+            "\tborder: 2px solid #fcfcfc;\n" +
+            "\tbox-shadow: 0 1px 2px rgba(34, 25, 25, 0.4);\n" +
+            "\tmargin: 0 2px 15px;\n" +
+            "\tpadding: 15px;\n" +
+            "\tpadding-bottom: 10px;\n" +
+            "\ttransition: opacity .4s ease-in-out;\n" +
+            "  display: inline-block;\n" +
+            "  column-break-inside: avoid;\n" +
+            "}\n" +
+            "\n" +
+            "div#columns figure img {\n" +
+            "\twidth: 100%; height: auto;\n" +
+            "\tborder-bottom: 1px solid #ccc;\n" +
+            "\tpadding-bottom: 15px;\n" +
+            "\tmargin-bottom: 5px;\n" +
+            "}\n" +
+            "\n" +
+            "div#columns figure figcaption {\n" +
+            "  font-size: .9rem;\n" +
+            "\tcolor: #444;\n" +
+            "  line-height: 1.5;\n" +
+            "}\n" +
+            "\n" +
+            "div#columns small { \n" +
+            "  font-size: 1rem;\n" +
+            "  float: right; \n" +
+            "  color: #aaa;\n" +
+            "} \n" +
+            "\n" +
+            "div#columns small a { \n" +
+            "  color: #666; \n" +
+            "  text-decoration: none; \n" +
+            "  transition: .4s color;\n" +
+            "}";
 
     private static String imageCSSStyle = "<style>\n" +
             "div.img {\n" +
@@ -80,7 +139,7 @@ class FrontPage extends ServletContextHandler {
             "    font-weight: normal;\n" +
             "    width: 150px;\n" +
             "    margin: 5px;\n" +
-            "}\n" +
+            "}\n" + pinStyle +
             "</style>";
 
     private static String htmlPageHeader = "<!DOCTYPE html><html>\n" +
@@ -113,7 +172,6 @@ class FrontPage extends ServletContextHandler {
             "<body>" +
             "<div style=\"column-count:1;-moz-column-count:1; /* Firefox */\n" +    // the container div which has
             "-webkit-column-count:1; /* Safari and Chrome */\">" +                  // 2 divisions: sections and rank
-            "<div style=\"column-count:4;-moz-column-count:4; /* Firefox */\n" +    // the first nested div for sections
-            "-webkit-column-count:4; /* Safari and Chrome */\">";
+            Div4Col;
 
 }
