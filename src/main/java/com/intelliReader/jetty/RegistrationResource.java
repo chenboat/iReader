@@ -1,5 +1,6 @@
 package com.intelliReader.jetty;
 
+import com.intelliReader.storage.MongoDBConnections;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -51,7 +52,8 @@ public class RegistrationResource {
             request.setEntity(params);
             HttpResponse response = httpClient.execute(request,localContext);
             System.out.println(response.getStatusLine());
-            // handle response here...
+            // Add the member email to the member db
+            MongoDBConnections.accountsTable.put(email,(int)Math.round(Math.random()*1000*1000*1000));
         }catch (Exception ex) {
             // handle exception here
         } finally {

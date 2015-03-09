@@ -48,4 +48,19 @@ public class TestMongoDBStore extends TestCase {
         assert keys.size() == 1;
         assert keys.contains("chen");
     }
+/*
+    public void testOneTimeMigration() throws Exception {
+        String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
+        MongoDBStore<String, Date> dateTable =
+                new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
+
+        Map<String,Date> dates = dateTable.getAll();
+
+        for(String k: dates.keySet()){
+            if(!k.contains(":")){
+                dateTable.put("boat@ting.com:"+k,dates.get(k));
+            }
+        }
+    }
+ */
 }

@@ -7,11 +7,12 @@ import com.intelliReader.newsfeed.Feed;
 import com.intelliReader.newsfeed.FeedMessage;
 import com.intelliReader.newsfeed.RSSFeedParser;
 import com.intelliReader.newsfeed.RSSSources;
+import com.intelliReader.storage.MongoDBConnections;
 import com.intelliReader.storage.MongoDBStore;
 import com.intelliReader.storage.Store;
+import com.intelliReader.util.StringUtil;
 
 import javax.xml.stream.XMLStreamException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -22,17 +23,13 @@ import java.util.logging.Logger;
  * Build the content for RSS feeds and write the contents to a persistent storage
  */
 public class ContentBuilder extends Thread {
-    public static final int TOP_K_ARTICLES = 300;
     public static final String SECTION_HTML_COLOUMN_NAME = "html";
     public static final String RANKING_HTML_COLUMN_NAME = "html";
     Logger log = Logger.getLogger(ContentBuilder.class.getName());
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public void run() {
         while(true){
-            initSectionModel();
             try {
-                initRankingModel();
-                initPinterestRankingModel();
+                buildContentsForAllAccounts();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -45,129 +42,20 @@ public class ContentBuilder extends Thread {
 
     }
 
-    private void initRankingModel() throws Exception{
-        StringBuilder sb = new StringBuilder();
-        KeywordBasedFeedRelevanceModel model;
-         // this is a store which store all articles viewed
-        String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
-        Store<String, Double> wordScoresStore = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
-        Store<String, Date> wordLastUpdatedDatesStore = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
-        Store<String, Date> visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
-        System.out.println("Word store size:" + wordScoresStore.getKeys().size());
-        model = new KeywordBasedFeedRelevanceModel(
-                wordScoresStore,
-                wordLastUpdatedDatesStore,
-                new StopWordFilter(new MongoDBStore<String, Date>(dbUri,"stopwords","word","time")),
-                new Stemmer());
-
-        // Compute the scores for each article and sort the list the scores
-        Set<String> msgHash = new HashSet<String>();
-        List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
-        for(String rss: RSSSources.feeds.keySet()){
-            try{
-                RSSFeedParser parser = new RSSFeedParser(rss);
-                Feed feed = parser.readFeed();
-                List<FeedMessage> messages = feed.getMessages();
-                for(FeedMessage message:messages)
-                {
-                    if(visitedFeedMsgTitleStore.get(message.getTitle()+ " " + message.getDescription()) == null &&
-                            !msgHash.contains(message.getTitle())){
-                        // remove the duplicates and visited feed messages
-                        msgHash.add(message.getTitle());
-                        feedMsgs.add(message);
-                    }
-                }
-            }catch (XMLStreamException e){
-                e.printStackTrace();
-            }
+    private void buildContentsForAllAccounts() throws Exception{
+        for(String userEmail : MongoDBConnections.accountsTable.getAll().keySet()){
+            initSectionModel(userEmail);
+            initRankingModelInPinterestStyle(userEmail);
         }
-        List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
-                model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        int topK = TOP_K_ARTICLES; // Add pic only to the topK feed msg
-        int cnt = 0;
-        for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
-            FeedMessage message = msg.getMsg();
-            Map<String,Double> wordScores = msg.getWordWithScores();
-            String tipOverText = getScores(wordScores);
-            String picURL;
-            if (cnt < topK) {
-                picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
-                if(picURL == null){     // if the feed msg does not have a pic, just add the link
-                    sb.append("<div class=\"img\">" + "<div class=\"desc\">" + "<a onclick=\"sendText(this)\" href=\"");
-                    sb.append(message.getLink());
-                    sb.append("\" title=\"");
-                    sb.append(tipOverText);
-                    sb.append("\">");
-                    sb.append(message.getTitle());
-                    sb.append("</a>");
-                    sb.append("(");
-                    sb.append(String.format("%.2f", msg.getScore()));
-                    sb.append(")");
-                    sb.append("<small>");
-                    sb.append(message.getDescription());
-                    sb.append("</small>");
-                    sb.append("</div>");
-                    sb.append("</div>");
-                }else{ // otherwise, add both the link and the pic
-                    sb.append("<div class=\"img\">" + "<a>\n" + "    <img src=\"");
-                    sb.append(picURL);
-                    sb.append("\" width=\"140\" height=\"114\">\n");
-                    sb.append("</a>");
-                    sb.append("<div class=\"desc\">");
-                    sb.append("<a onclick=\"sendText(this)\" href=\"");
-                    sb.append(message.getLink());
-                    sb.append("\" title=\"");
-                    sb.append(tipOverText);
-                    sb.append("\">");
-                    sb.append(message.getTitle());
-                    sb.append("</a>");
-                    sb.append("(");
-                    sb.append(String.format("%.2f", msg.getScore()));
-                    sb.append(")");
-                    sb.append("<small>");
-                    sb.append(message.getDescription());
-                    sb.append("</small>");
-                    sb.append("</div>");
-                    sb.append("</div>");
-                }
-            }else {
-                sb.append("<p><a onclick=\"sendText(this)\" href=\"");
-                sb.append(message.getLink());
-                sb.append("\" title=\"");
-                sb.append(tipOverText);
-                sb.append("\">");
-                sb.append(message.getTitle());
-                sb.append("</a>");
-                sb.append("(");
-                sb.append(String.format("%.2f", msg.getScore()));
-                sb.append(")");
-                sb.append("<small>");
-                sb.append(message.getDescription());
-                sb.append("</small></p>\n");
-            }
-            cnt++;
-        }
-        String rankListHTML = sb.toString();
-        Store<String, String> rankingHTMLStore =
-                new MongoDBStore<String, String>(dbUri, "rankingHTMLTable", "field", "value");
-        rankingHTMLStore.put(RANKING_HTML_COLUMN_NAME,rankListHTML);
-        rankingHTMLStore.put("time",df.format(new Date()));
     }
-
-    private void initPinterestRankingModel() throws Exception{
+    private void initRankingModelInPinterestStyle(String userId) throws Exception{
         StringBuilder sb = new StringBuilder();
-        KeywordBasedFeedRelevanceModel model;
-        // this is a store which store all articles viewed
-        String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
-        Store<String, Double> wordScoresStore = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
-        Store<String, Date> wordLastUpdatedDatesStore = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
-        Store<String, Date> visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
-        System.out.println("Word store size:" + wordScoresStore.getKeys().size());
-        model = new KeywordBasedFeedRelevanceModel(
-                wordScoresStore,
-                wordLastUpdatedDatesStore,
-                new StopWordFilter(new MongoDBStore<String, Date>(dbUri,"stopwords","word","time")),
-                new Stemmer());
+        KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
+                MongoDBConnections.scoreTable,
+                MongoDBConnections.dateTable,
+                new StopWordFilter(MongoDBConnections.stopwordTable),
+                new Stemmer(),
+                userId);
 
         // Compute the scores for each article and sort the list the scores
         Set<String> msgHash = new HashSet<String>();
@@ -179,7 +67,9 @@ public class ContentBuilder extends Thread {
                 List<FeedMessage> messages = feed.getMessages();
                 for(FeedMessage message:messages)
                 {
-                    if(visitedFeedMsgTitleStore.get(message.getTitle()+ " " + message.getDescription()) == null &&
+                    if(MongoDBConnections.visitedFeedMsgTitleStore.get
+                            (StringUtil.makeSSTableKey(userId,message.getTitle()+" "+ message.getDescription())) == null
+                            &&
                             !msgHash.contains(message.getTitle())){
                         // remove the duplicates and visited feed messages
                         msgHash.add(message.getTitle());
@@ -204,7 +94,7 @@ public class ContentBuilder extends Thread {
                 sb.append(picURL);
                 sb.append("\">\n");
                 sb.append("<figcaption>");
-                sb.append("<a onclick=\"sendText(this)\" href=\"");
+                sb.append("<a onclick=\"sendText(this,'" + userId + "')\" href=\"");
                 sb.append(message.getLink());
                 sb.append("\" title=\"");
                 sb.append(tipOverText);
@@ -223,14 +113,12 @@ public class ContentBuilder extends Thread {
         }
         sb.append("</div>");
         String rankListHTML = sb.toString();
-        Store<String, String> rankingHTMLStore =
-                new MongoDBStore<String, String>(dbUri, "pinterestHTMLTable", "field", "value");
-        rankingHTMLStore.put(RANKING_HTML_COLUMN_NAME,rankListHTML);
-        rankingHTMLStore.put("time",df.format(new Date()));
+
+        MongoDBConnections.accountRankingHTMLStore.put(userId,rankListHTML);
     }
 
 
-    private void initSectionModel(){
+    private void initSectionModel(String userId){
         log.info("Build the html page @ " +  Calendar.getInstance());
         try {
             // First load the word and score info stored in bdb
@@ -238,6 +126,7 @@ public class ContentBuilder extends Thread {
             Store<String, String> sectionHTMLStore = new MongoDBStore<String, String>(dbUri, "sectionTable", "field", "value");
             // Next fetch the latest feed messages and build the html tags
             StringBuffer sb = new StringBuffer();
+            sb.append("<div id=\"sections\">");
             for (String rss : RSSSources.feeds.keySet()) {
                 RSSFeedParser parser = new RSSFeedParser(rss);
                 try {
@@ -248,7 +137,7 @@ public class ContentBuilder extends Thread {
                     sb.append("</p>\n");
                     sb = sb.append("<div class=\"content\">\n");
                     for (FeedMessage message : messages) {
-                        sb.append("<p><a onclick=\"sendText(this)\" href=\"");
+                        sb.append("<p><a onclick=\"sendText(this,'" + userId + "')\" href=\"");
                         sb.append(message.getLink());
                         sb.append("\">");
                         sb.append(message.getTitle());
@@ -262,9 +151,9 @@ public class ContentBuilder extends Thread {
                     e.printStackTrace();
                 }
             }
+            sb.append("</div>");
             String sectionHTML = sb.toString();
-            sectionHTMLStore.put(SECTION_HTML_COLOUMN_NAME, sectionHTML);
-            sectionHTMLStore.put("time", df.format(new Date()));
+            MongoDBConnections.accountSectionHTMLStore.put(userId, sectionHTML);
         }catch (Exception e){
             e.printStackTrace();
         }

@@ -1,8 +1,10 @@
 package com.intelliReader.model;
 
 import com.intelliReader.newsfeed.FeedMessage;
+import com.intelliReader.storage.MongoDBStore;
 import com.intelliReader.storage.Store;
 import com.intelliReader.text.TextAnalyzer;
+import com.intelliReader.util.StringUtil;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
@@ -33,7 +35,20 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     Store<String,Date> wordLastUpdatedDates;
     StopWordFilter stopWordFilter;
     Stemmer stemmer;
+    String id; // the user id which is be the prefix of the keys of relevant records of the user in each table
     Logger log = Logger.getLogger(KeywordBasedFeedRelevanceModel.class.getName());
+
+    public KeywordBasedFeedRelevanceModel(Store<String, Double> scoreTable,
+                                          Store<String, Date> dateTable,
+                                          StopWordFilter stopWordFilter,
+                                          Stemmer stemmer,
+                                          String id) {
+        wordScores = scoreTable;
+        wordLastUpdatedDates = dateTable;
+        this.stopWordFilter = stopWordFilter;
+        this.stemmer = stemmer;
+        this.id = id;
+    }
 
     public Store<String, Double> getWordScores() {
         return wordScores;
@@ -48,10 +63,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                                           StopWordFilter filter,
                                           Stemmer s)
     {
-        wordScores = wordScoresStore;
-        wordLastUpdatedDates = wordLastUpdatedDatesStore;
-        stopWordFilter = filter;
-        stemmer = s;
+        this(wordScoresStore,wordLastUpdatedDatesStore,filter,s,null);
     }
 
     public void initModel()
@@ -80,16 +92,17 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
             Map<String, Double> wordsWithScores = new HashMap<String, Double>();
             for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
             {
+                String key = StringUtil.makeSSTableKey(id,w);   // use the user id + word composite key
                 try{
-                    if(wordScoresCache.get(w) != null)
+                    if(wordScoresCache.get(key) != null)
                     {
-                        assert  wordLastUpdatedDatesCache.get(w) != null;
+                        assert  wordLastUpdatedDatesCache.get(key) != null;
                         // Taking into consideration of time lapses
-                        double wScore = ModelUtil.exponentialDecayScore(wordScoresCache.get(w),
-                                                                        wordLastUpdatedDatesCache.get(w),date);
-                        log.warning("\t"+ w + ":" +  + wordScoresCache.get(w) + "|" + wScore);
+                        double wScore = ModelUtil.exponentialDecayScore(wordScoresCache.get(key),
+                                                                        wordLastUpdatedDatesCache.get(key),date);
+                        log.warning("\t"+ key + ":" +  + wordScoresCache.get(key) + "|" + wScore);
                         score += wScore;
-                        wordsWithScores.put(w,wScore);
+                        wordsWithScores.put(key,wScore);
                     }
                 }catch (Exception e)
                 {
@@ -110,23 +123,24 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
 
         for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
         {
+            String key = StringUtil.makeSSTableKey(id,w);   // use the user id + word composite key
             try{
-                if(wordScores.get(w) != null)
+                if(wordScores.get(key) != null)
                 {
-                    assert wordLastUpdatedDates.get(w) != null; // both map should have the key
-                    Date prevDate = wordLastUpdatedDates.get(w);
+                    assert wordLastUpdatedDates.get(key) != null; // both map should have the key
+                    Date prevDate = wordLastUpdatedDates.get(key);
                     assert viewDate.after(prevDate) || viewDate.equals(prevDate);
 
-                    double score = wordScores.get(w);
+                    double score = wordScores.get(key);
                     score = ModelUtil.exponentialDecayScore(score,prevDate,viewDate) + 1.0;
 
-                    wordScores.put(w,score);
-                    wordLastUpdatedDates.put(w,viewDate);
+                    wordScores.put(key,score);
+                    wordLastUpdatedDates.put(key,viewDate);
                 }
                 else
                 {
-                    wordScores.put(w,1.0);
-                    wordLastUpdatedDates.put(w,viewDate);
+                    wordScores.put(key,1.0);
+                    wordLastUpdatedDates.put(key,viewDate);
                 }
             }catch (Exception e)
             {
