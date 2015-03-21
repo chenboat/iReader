@@ -95,9 +95,6 @@ public class JettyServer extends ServletContextHandler {
         CountingPage cp = new CountingPage(ajaxHandler.getModel());
         cp.setContextPath("/count");
 
-        FrontPage frontPage = new FrontPage();
-        frontPage.setContextPath("/");
-
         VisitedPage visitedPage = new VisitedPage(ajaxHandler.getVisitedFeedMsgTitleStore());
         visitedPage.setContextPath("/v");
 
@@ -105,12 +102,12 @@ public class JettyServer extends ServletContextHandler {
         WebAppContext loginPage = new WebAppContext();
         loginPage.setDescriptor("src/main/webapp/WEB-INF/web.xml");
         loginPage.setResourceBase("src/main/webapp/");
-        loginPage.setContextPath("/l");
+        loginPage.setContextPath("/");
         loginPage.setParentLoaderPriority(true);
 
         ContextHandlerCollection handlers = new ContextHandlerCollection();
         handlers.setHandlers(new Handler[]
-                { frontPage, ajaxHandler,cp ,visitedPage,loginPage});
+                { ajaxHandler,cp ,visitedPage,loginPage});
 
         server.setHandler(handlers);
         server.start();
