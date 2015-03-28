@@ -118,16 +118,17 @@
     </script>
 </head>
 <body>
-    <shiro:authenticated><p>Visit your <a href="<c:url value="/account"/>">account page</a>.</p></shiro:authenticated>
-    <shiro:notAuthenticated><p>If you want to access the authenticated-only <a href="<c:url value="/account"/>">account page</a>,
-        you will need to log-in first.</p></shiro:notAuthenticated>
+    <p>
+      <shiro:authenticated>Visit your <a href="<c:url value="/account"/>">account page</a>.</shiro:authenticated>
+      <shiro:notAuthenticated>If you want to access the authenticated-only <a href="<c:url value="/account"/>">account page</a>,
+        you will need to log-in first.</shiro:notAuthenticated>
 
-    ( <shiro:user><a href="<c:url value="/logout"/>">Log out</a></shiro:user>
-            <shiro:guest><a href="<c:url value="/loginOrReg.jsp"/>">Log in</a></shiro:guest> )
+      ( <shiro:user> <a href="<c:url value="/logout"/>">Log out</a></shiro:user>
+        <shiro:guest><a href="<c:url value="/loginOrReg.jsp"/>">Log in</a> <b>You are NOT logged in</b> </shiro:guest> )
+    </p>
 
     <p>
         <shiro:guest>
-                <b>You are NOT logged in</b>
                 <div style="column-count:1;-moz-column-count:1; /* Firefox */
                                -webkit-column-count:1; /* Safari and Chrome */">
                     <div style="column-count:4;-moz-column-count:4; /* Firefox */
