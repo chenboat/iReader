@@ -48,19 +48,25 @@ public class TestMongoDBStore extends TestCase {
         assert keys.size() == 1;
         assert keys.contains("chen");
     }
-/*
-    public void testOneTimeMigration() throws Exception {
+
+/*    public void testOneTimeMigration() throws Exception {
         String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
-        MongoDBStore<String, Date> dateTable =
-                new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
+        MongoDBStore<String, Number> usersTable =
+                new MongoDBStore<String, Number>(dbUri, "accounts", "email", "userId");
+        MongoDBStore<String, Date> stopwords =
+                new MongoDBStore<String, Date>(dbUri, "stopwords", "word", "time");
+        MongoDBStore<String, Date> acctStopwords =
+                new MongoDBStore<String, Date>(dbUri, "accountStopwords", "word", "time");
 
-        Map<String,Date> dates = dateTable.getAll();
 
-        for(String k: dates.keySet()){
-            if(!k.contains(":")){
-                dateTable.put("boat@ting.com:"+k,dates.get(k));
+        Map<String,Number> users = usersTable.getAll();
+        Map<String,Date> wordLst = stopwords.getAll();
+
+        for(String usr: users.keySet()){
+            for(String word: wordLst.keySet()){
+                acctStopwords.put(usr + ":"+ word, wordLst.get(word));
             }
         }
     }
- */
+*/
 }

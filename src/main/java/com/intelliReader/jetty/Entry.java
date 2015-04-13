@@ -23,9 +23,20 @@ public class Entry implements Serializable {
     @XmlElement
     private String value;
 
-    public Entry(String id, String value) {
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    private String userId;
+
+    public Entry(String id, String value, String userId) {
         this.id = id;
         this.value = value;
+        this.userId = userId;
     }
     // for javax.xml.bind.annotation
     public Entry() {

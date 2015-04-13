@@ -49,6 +49,13 @@ public class PaginatedListWrapper<T> implements Serializable {
         this.sortDirections = sortDirections;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
     @XmlElement
     public List<T> getList() {
         return list;
@@ -61,8 +68,11 @@ public class PaginatedListWrapper<T> implements Serializable {
     private Integer currentPage;
     private Integer pageSize;
     private Integer totalResults;
-
     private String sortFields;
     private String sortDirections;
+
+
+
+    private String userId;
     private List<T> list;
 }

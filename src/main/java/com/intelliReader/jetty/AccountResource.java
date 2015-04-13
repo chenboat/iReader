@@ -51,7 +51,7 @@ public class AccountResource{
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                 MongoDBConnections.scoreTable,
                 MongoDBConnections.dateTable,
-                new StopWordFilter(MongoDBConnections.stopwordTable),
+                new StopWordFilter(MongoDBConnections.stopwordTable,id),
                 new Stemmer(),
                 id);
 

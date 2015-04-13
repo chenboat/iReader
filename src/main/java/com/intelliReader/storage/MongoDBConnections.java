@@ -26,7 +26,7 @@ public class MongoDBConnections {
             visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
             scoreTable = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
             dateTable = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
-            stopwordTable = new MongoDBStore<String, Date>(dbUri,"stopwords","word","time");
+            stopwordTable = new MongoDBStore<String, Date>(dbUri,"accountStopwords","word","time");
             accountsTable = new MongoDBStore<String, Integer>(dbUri,"accounts","email","userId");
             accountRankingHTMLStore =
                     new MongoDBStore<String, String>(dbUri, "accountRankingHTMLTable", "userId", "html");

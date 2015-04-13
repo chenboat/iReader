@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
     Store<String,Double> wordScores;
     Store<String,Date> wordLastUpdatedDates;
-    StopWordFilter stopWordFilter;
+    StopWordFilter stopWordFilter; // the word in the filter is NOT prefixed by user id
     Stemmer stemmer;
     String id; // the user id which is be the prefix of the keys of relevant records of the user in each table
     Logger log = Logger.getLogger(KeywordBasedFeedRelevanceModel.class.getName());

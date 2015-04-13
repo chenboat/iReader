@@ -13,6 +13,8 @@ import com.intelliReader.storage.Store;
 import com.intelliReader.util.StringUtil;
 
 import javax.xml.stream.XMLStreamException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -53,7 +55,7 @@ public class ContentBuilder extends Thread {
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                 MongoDBConnections.scoreTable,
                 MongoDBConnections.dateTable,
-                new StopWordFilter(MongoDBConnections.stopwordTable),
+                new StopWordFilter(MongoDBConnections.stopwordTable,userId),
                 new Stemmer(),
                 userId);
 
@@ -86,7 +88,7 @@ public class ContentBuilder extends Thread {
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
             Map<String,Double> wordScores = msg.getWordWithScores();
-            String tipOverText = getScores(wordScores);
+            String tipOverText = getScores(wordScores,userId);
             String picURL;
             picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
             if(picURL != null){     // only add articles having pics
@@ -159,7 +161,7 @@ public class ContentBuilder extends Thread {
         }
     }
 
-    private String getScores(Map<String,Double> wordScores) {
+    private String getScores(Map<String,Double> wordScores, String userId) {
         StringBuffer sb = new StringBuffer();
         List<Pair> lst = new ArrayList<Pair>();
         for(String s: wordScores.keySet()){
@@ -167,7 +169,8 @@ public class ContentBuilder extends Thread {
         }
         Collections.sort(lst);
         for(Pair p: lst){
-            sb = sb.append(p.k).append(":").append(p.s).append("|");
+            String word = p.k.substring(userId.length() + 1);
+            sb = sb.append(word).append(":").append(String.format("%.2f",p.s)).append("|");
         }
         return sb.toString();
     }

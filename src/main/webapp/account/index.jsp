@@ -16,37 +16,100 @@
 <jsp:include page="../include.jsp"/>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html ng-app="stopwordList">
 <head>
-    <title>Apache Shiro Tutorial Webapp : Login</title>
+    <title>User account page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Add some nice styling and functionality.  We'll just use Twitter Bootstrap -->
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
     <style>
         body{padding: 0 20px;}
     </style>
+    <script src="../lib/angular.min.js"></script>
+    <script src="../lib/angular-resource.min.js"></script>
+    <script src="../lib/jquery.min.js"></script>
+    <script src="../lib/ui-bootstrap-tpls.min.js"></script>
+    <script src="../lib/ng-grid-2.0.11.min.js"></script>
+
+    <script src="../script/stopwordList.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../lib/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../lib/ng-grid.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../css/style.css"/>
 </head>
 <body>
-
-    <h2>For authenticated users only!</h2>
-
-    <p>This page simulates a restricted part of a web application intended for authenticated users only.</p>
-
-    <p>You are currently logged in.</p>
-
+    <h2>Stopword List</h2>
     <p><a href="<c:url value="/home.jsp"/>">Return to the home page.</a></p>
-
     <p><a href="<c:url value="/logout"/>">Log out.</a></p>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://code.jquery.com/jquery.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-    <![endif]-->
+    <shiro:user>
+        <%
+            //This should never be done in a normal page and should exist in a proper MVC controller of some sort, but for this
+            //tutorial, we'll just pull out Stormpath Account data from Shiro's PrincipalCollection to reference in the
+            //<c:out/> tag next:
+            request.setAttribute("account", org.apache.shiro.SecurityUtils.getSubject().getPrincipals().oneByType(java.util.Map.class));
+        %>
+        <p> ${account.email}</p>
+
+        <!-- Specify a Angular controller script that binds Javascript variables to the feedback messages.-->
+        <div class="message" ng-controller="alertMessagesController">
+            <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+        </div>
+
+        <!-- Specify a Angular controller script that binds Javascript variables to the grid.-->
+        <div class="grid">
+            <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
+            <div ng-controller="stopwordList" ng-init="init('${account.email}')">
+                <div>
+                    <h3>Stopword List</h3>
+                </div>
+                <!-- Binds the grid component to be displayed. -->
+                <div class="gridStyle" ng-grid="gridOptions"></div>
+
+                <!--  Bind the pagination component to be displayed. -->
+                <pagination direction-links="true" boundary-links="true"
+                            total-items="stopwordList.totalResults"
+                            page="stopwordList.currentPage"
+                            items-per-page="stopwordList.pageSize"
+                            on-select-page="refreshGrid(page)">
+                </pagination>
+            </div>
+        </div>
+
+        <!-- Specify a Angular controller script that binds Javascript variables to the form.-->
+        <div class="form" ng-controller="entryFormController" ng-init="init('${account.email}')">
+            <!-- Verify entry, if there is no id present, that we are Adding a Person -->
+            <div ng-if="entry.id == null">
+                <h3>Add Entry</h3>
+            </div>
+            <!-- Otherwise it's an Edit -->
+            <div ng-if="entry.id != null">
+                <h3>Edit Entry</h3>
+            </div>
+
+            <div>
+                <!-- Specify the function to be called on submit and disable HTML5 validation, since we're using Angular validation-->
+                <form name="entryForm" ng-submit="updateEntry()" novalidate>
+
+                    <!-- Display an error if the input is invalid and is dirty (only when someone changes the value) -->
+                    <div class="form-group" ng-class="{'has-error' : entryForm.id.$invalid && entryForm.id.$dirty}">
+                        <label for="id">id:</label>
+                        <!-- Display a check when the field is valid and was modified -->
+                        <span ng-class="{'glyphicon glyphicon-ok' : entryForm.id.$valid && entryForm.id.$dirty}"></span>
+
+                        <input id="id" name="id" type="text" class="form-control" maxlength="50"
+                               ng-model="entry.id"/>
+
+                        <!-- Validation messages to be displayed on required, minlength and maxlength -->
+                        <p class="help-block" ng-show="entryForm.id.$error.required">Add Id.</p>
+                    </div>
+
+                    <!-- Form buttons. The 'Save' button is only enabled when the form is valid. -->
+                    <div class="buttons">
+                        <button type="button" class="btn btn-primary" ng-click="clearForm()">Clear</button>
+                        <button type="submit" class="btn btn-primary" ng-disabled="entryForm.$invalid">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </shiro:user>
 </body>
 </html>

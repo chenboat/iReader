@@ -1,15 +1,20 @@
 var app = angular.module('stopwordList', ['ngResource','ngGrid', 'ui.bootstrap']);
 // Create a controller with name stopwordList to bind to the html page.
 app.controller('stopwordList', function ($scope, $http, $rootScope) {
+    $scope.userEmail = 'anonymous';
+    $scope.init = function(email) {
+        $scope.userEmail = email;
+    }
     // Makes the REST request to get the data to populate the grid.
     $scope.refreshGrid = function (page) {
         $http({
-            url: 'jersey/stopwordList',
+            url: '/jersey/stopwordList',
             method: 'GET',
             params: {
                 page: page,
                 sortFields: $scope.sortInfo.fields[0],
-                sortDirections: $scope.sortInfo.directions[0]
+                sortDirections: $scope.sortInfo.directions[0],
+                userId: $scope.userEmail,
             }
         }).success(function (data) {
             $scope.stopwordList = data;
@@ -43,12 +48,12 @@ app.controller('stopwordList', function ($scope, $http, $rootScope) {
         useExternalSorting: true,
         sortInfo: $scope.sortInfo,
         columnDefs: [
-                    { field: 'id', displayName: 'Id' },
-                    { field: 'value', displayName: 'value' },
+                    { field: 'id', displayName: 'Word' },
+                    { field: 'value', displayName: 'Date' },
                     { field: '', width: 30, cellTemplate: '<span class="glyphicon glyphicon-remove remove" ng-click="deleteRow(row)"></span>' }
                 ],
     };
-    // Broadcast an event when an element in the grid is deleted. No real deletion is perfomed at this point.
+    // Broadcast an event when an element in the grid is deleted. No real deletion is performed at this point.
     $scope.deleteRow = function (row) {
         $rootScope.$broadcast('deleteEntry', row.entity.id);
     };
@@ -56,6 +61,10 @@ app.controller('stopwordList', function ($scope, $http, $rootScope) {
 
 // Create a controller with name entryFormController to bind to the form section.
 app.controller('entryFormController', function ($scope, $rootScope, entryService) {
+    $scope.userEmail = 'anonymous';
+    $scope.init = function(email) {
+        $scope.userEmail = email;
+    }
     // Clears the form. Either by clicking the 'Clear' button in the form, or when a successful save is performed.
     $scope.clearForm = function () {
         $scope.entry = null;
@@ -67,6 +76,7 @@ app.controller('entryFormController', function ($scope, $rootScope, entryService
 
     // Calls the rest method to save a entry.
     $scope.updateEntry = function () {
+        $scope.entry.userId = $scope.userEmail;
         entryService.save($scope.entry).$promise.then(
             function () {
                 // Broadcast the event to refresh the grid.
@@ -84,13 +94,13 @@ app.controller('entryFormController', function ($scope, $rootScope, entryService
     // Picks up the event broadcast when the entry is selected from the grid and perform the entry load by calling
     // the appropriate rest service.
     $scope.$on('entrySelected', function (event, id) {
-        $scope.entry = entryService.get({id: id});
+        $scope.entry = entryService.get({id: id, userId: userEmail});
     });
 
     // Picks us the event broadcast when the entry is deleted from the grid and perform the actual entry delete by
     // calling the appropriate rest service.
     $scope.$on('deleteEntry', function (event, id) {
-        entryService.delete({id: id}).$promise.then(
+        entryService.delete({id: id, userId: $scope.userEmail}).$promise.then(
             function () {
                 // Broadcast the event to refresh the grid.
                 $rootScope.$broadcast('refreshGrid');
@@ -135,5 +145,5 @@ app.controller('alertMessagesController', function ($scope) {
 
 // Service that provides persons operations
 app.factory('entryService', function ($resource) {
-    return $resource('jersey/stopwordList/:id');
+    return $resource('/jersey/stopwordList/:id');
 });
