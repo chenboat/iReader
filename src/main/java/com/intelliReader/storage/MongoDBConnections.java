@@ -11,7 +11,7 @@ import java.util.Date;
 public class MongoDBConnections {
     public static String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
     public static MongoDBStore<String,String> accountHTMLTable;       // should be deprecated
-    public static MongoDBStore<String,Date> visitedFeedMsgTitleStore;
+    public static MongoDBMapStore<String> visitedFeedMsgTitleStore;
     public static MongoDBStore<String,Double> scoreTable;
     public static MongoDBStore<String,Date> dateTable;
     public static MongoDBStore<String,Date> stopwordTable;
@@ -23,7 +23,7 @@ public class MongoDBConnections {
         try {
             accountHTMLTable = new MongoDBStore<String, String>(dbUri, "accountHTMLTable", "userId", "html");
             // this is a store which store all articles viewed
-            visitedFeedMsgTitleStore =  new MongoDBStore<String, Date>(dbUri,"titleTable", "title", "viewDate" );
+            visitedFeedMsgTitleStore =  new MongoDBMapStore<String>(dbUri,"readArticlesTable", "title");
             scoreTable = new MongoDBStore<String, Double>(dbUri, "scoreTable", "word", "score" );
             dateTable = new MongoDBStore<String, Date>(dbUri, "dateTable", "word", "updateDate");
             stopwordTable = new MongoDBStore<String, Date>(dbUri,"accountStopwords","word","time");

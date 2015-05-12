@@ -11,6 +11,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: ting
@@ -47,7 +49,9 @@ public class AccountResource{
     @POST
     @Path("/record")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public void recordUserReads(@FormParam("id") String id, @FormParam("title") String title){
+    public void recordUserReads(@FormParam("id") String id,
+                                @FormParam("title") String title,
+                                @FormParam("section") String section){
         KeywordBasedFeedRelevanceModel model = new KeywordBasedFeedRelevanceModel(
                 MongoDBConnections.scoreTable,
                 MongoDBConnections.dateTable,
@@ -58,7 +62,11 @@ public class AccountResource{
         Date date = Calendar.getInstance().getTime();
         model.addFeed(new FeedMessage(title, null), date);
         try {
-            MongoDBConnections.visitedFeedMsgTitleStore.put(StringUtil.makeSSTableKey(id,title), date);
+            Map m = new HashMap();
+            m.put("date",date);
+            m.put("section",section);
+
+            MongoDBConnections.visitedFeedMsgTitleStore.put(StringUtil.makeSSTableKey(id,title), m);
         } catch (Exception e) {
             e.printStackTrace();
         }

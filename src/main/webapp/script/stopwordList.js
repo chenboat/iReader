@@ -143,7 +143,62 @@ app.controller('alertMessagesController', function ($scope) {
     };
 });
 
-// Service that provides persons operations
+// Service that provides stopword list operations
 app.factory('entryService', function ($resource) {
     return $resource('/jersey/stopwordList/:id');
+});
+
+app.controller('readList', function ($scope, $http, $rootScope) {
+    $scope.userEmail = 'anonymous';
+    $scope.init = function(email) {
+        $scope.userEmail = email;
+    }
+    // Makes the REST request to get the data to populate the grid.
+    $scope.refreshGrid = function (page) {
+        $http({
+            url: '/jersey/readList',
+            method: 'GET',
+            params: {
+                page: page,
+                sortFields: $scope.sortInfo.fields[0],
+                sortDirections: $scope.sortInfo.directions[0],
+                userId: $scope.userEmail,
+            }
+        }).success(function (data) {
+            $scope.readList = data;
+        });
+    };
+
+    // Do something when the grid is sorted.
+    // The grid throws the ngGridEventSorted that gets picked up here and assigns the sortInfo to the scope.
+    // This will allow to watch the sortInfo in the scope for changed and refresh the grid.
+    $scope.$on('ngGridEventSorted', function (event, sortInfo) {
+        $scope.sortInfo = sortInfo;
+    });
+
+    // Watch the sortInfo variable. If changes are detected than we need to refresh the grid.
+    // This also works for the first page access, since we assign the initial sorting in the initialize section.
+    $scope.$watch('sortInfo', function () {
+        $scope.refreshGrid($scope.readList.currentPage);
+    }, true);
+
+    // Picks the event broadcasted when a person is saved or deleted to refresh the grid elements with the most
+    // updated information.
+    $scope.$on('refreshGrid', function () {
+        $scope.refreshGrid($scope.readList.currentPage);
+    });
+
+    // Initialize required information: sorting, the first page to show and the grid options.
+    $scope.sortInfo = {fields: ['id'], directions: ['asc']};
+    $scope.readList = {currentPage : 1};
+    $scope.gridOptions = {
+        data: 'readList.list',
+        useExternalSorting: true,
+        sortInfo: $scope.sortInfo,
+        columnDefs: [
+                    { field: 'id', displayName: 'Article' },
+                    { field: 'section', displayName: 'Category' },
+                    { field: 'value', displayName: 'Date' },
+                ],
+    };
 });

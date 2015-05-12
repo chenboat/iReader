@@ -110,6 +110,26 @@
                 </form>
             </div>
         </div>
+
+        <!-- Display the articles already read.-->
+        <div class="grid">
+            <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
+            <div ng-controller="readList" ng-init="init('${account.email}')">
+                <div>
+                    <h3>Articles Read</h3>
+                </div>
+                <!-- Binds the grid component to be displayed. -->
+                <div class="gridStyle" ng-grid="gridOptions"></div>
+
+                <!--  Bind the pagination component to be displayed. -->
+                <pagination direction-links="true" boundary-links="true"
+                            total-items="readList.totalResults"
+                            page="readList.currentPage"
+                            items-per-page="readList.pageSize"
+                            on-select-page="refreshGrid(page)">
+                </pagination>
+            </div>
+        </div>
     </shiro:user>
 </body>
 </html>

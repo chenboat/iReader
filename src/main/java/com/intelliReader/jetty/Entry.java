@@ -33,6 +33,10 @@ public class Entry implements Serializable {
 
     private String userId;
 
+    private String section; // NYTimes section
+
+
+
     public Entry(String id, String value, String userId) {
         this.id = id;
         this.value = value;
@@ -42,4 +46,11 @@ public class Entry implements Serializable {
     public Entry() {
     }
 
+    public String getSection() {
+        return section;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
+    }
 }

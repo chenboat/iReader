@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
  * Time: 3:39 PM
  */
 public class HTMLUtil {
+    public static final String ACCOUNT_DELIMITER = ":";
     private static final Pattern p = Pattern.compile(
             "http://graphics..nytimes.com/[^\"]*thumbLarge.jpg|http://static.*.nyt.com/.*.jpg"); // the regex to match the picture url
 

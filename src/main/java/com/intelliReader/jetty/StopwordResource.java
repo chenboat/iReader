@@ -14,14 +14,12 @@ import java.util.*;
 
 public class StopwordResource extends Application {
 
-    public static final String ACCOUNT_DELIMITER = ":";
-
     @GET
     @Path("{id}")
     public Entry getEntry( @PathParam("id") String id,
                            @QueryParam("userId")String userId
                             ) throws Exception {
-        String stored_id = userId + ACCOUNT_DELIMITER + id;
+        String stored_id = userId + HTMLUtil.ACCOUNT_DELIMITER + id;
         if( store.get(stored_id) != null) {
             return new Entry(id,  store.get(stored_id).toString(), userId);
         }else{
@@ -33,7 +31,7 @@ public class StopwordResource extends Application {
     public Entry saveEntry(Entry entry) throws Exception{
         assert entry.getId() != null;
         Date d = Calendar.getInstance().getTime();
-        store.put(entry.getUserId() + ACCOUNT_DELIMITER + entry.getId(), d);
+        store.put(entry.getUserId() + HTMLUtil.ACCOUNT_DELIMITER + entry.getId(), d);
         store.sync();
         return new Entry(entry.getId(),d.toString(),entry.getUserId());
     }
@@ -42,7 +40,7 @@ public class StopwordResource extends Application {
     @Path("{id}")
     public void deleteEntry(@PathParam("id") String id,
                             @QueryParam("userId")String userId) throws Exception{
-         store.delete(userId + ACCOUNT_DELIMITER + id);
+         store.delete(userId + HTMLUtil.ACCOUNT_DELIMITER + id);
          store.sync();
     }
 
@@ -91,8 +89,8 @@ public class StopwordResource extends Application {
         List<Entry> entries = new ArrayList<Entry>();
         Map<String,Date> map = store.getAll();
         for(String k:  map.keySet()){
-            if(k.startsWith(userId + ACCOUNT_DELIMITER)) {      // filter by member id
-                entries.add(new Entry(k.substring((userId + ACCOUNT_DELIMITER).length()),
+            if(k.startsWith(userId + HTMLUtil.ACCOUNT_DELIMITER)) {      // filter by member id
+                entries.add(new Entry(k.substring((userId + HTMLUtil.ACCOUNT_DELIMITER).length()),
                             map.get(k).toString(),userId));
             }
         }
@@ -111,7 +109,7 @@ public class StopwordResource extends Application {
     private Integer countEntries(String userId) throws Exception {
         int cnt = 0;
         for(String k:  store.getKeys()){
-            if(k.startsWith(userId + ACCOUNT_DELIMITER)) {      // filter by member id
+            if(k.startsWith(userId + HTMLUtil.ACCOUNT_DELIMITER)) {      // filter by member id
                 cnt++;
             }
         }

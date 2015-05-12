@@ -112,9 +112,9 @@
          }
     </script>
     <script type="text/javascript">
-         function sendText(elementId,userId) {
+         function sendText(elementId,userId,section) {
              var titleAndSummary=elementId.firstChild.data + " " + elementId.parentNode.lastChild.textContent;
-             $.post("jersey/account/record", {id:userId, title:titleAndSummary});     }
+             $.post("jersey/account/record", {id:userId, title:titleAndSummary, section: section});     }
     </script>
 </head>
 <body>

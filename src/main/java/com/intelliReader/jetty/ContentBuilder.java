@@ -59,8 +59,8 @@ public class ContentBuilder extends Thread {
                 new Stemmer(),
                 userId);
 
-        // Compute the scores for each article and sort the list the scores
-        Set<String> msgHash = new HashSet<String>();
+        // Compute the scores for each article and sort the list by the scores
+        Map<String,String> msgHash = new HashMap<String,String>();
         List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
         for(String rss: RSSSources.feeds.keySet()){
             try{
@@ -72,9 +72,9 @@ public class ContentBuilder extends Thread {
                     if(MongoDBConnections.visitedFeedMsgTitleStore.get
                             (StringUtil.makeSSTableKey(userId,message.getTitle()+" "+ message.getDescription())) == null
                             &&
-                            !msgHash.contains(message.getTitle())){
+                            !msgHash.containsKey(message.getTitle())){
                         // remove the duplicates and visited feed messages
-                        msgHash.add(message.getTitle());
+                        msgHash.put(message.getTitle(), extractSection(RSSSources.feeds.get(rss)));
                         feedMsgs.add(message);
                     }
                 }
@@ -92,11 +92,12 @@ public class ContentBuilder extends Thread {
             String picURL;
             picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
             if(picURL != null){     // only add articles having pics
+                String section = msgHash.get(message.getTitle());
                 sb.append("<figure>" + "    <img src=\"");
                 sb.append(picURL);
                 sb.append("\">\n");
                 sb.append("<figcaption>");
-                sb.append("<a onclick=\"sendText(this,'" + userId + "')\" href=\"");
+                sb.append("<a onclick=\"sendText(this,'" + userId  + "','" + section + "')\" href=\"");
                 sb.append(message.getLink());
                 sb.append("\" title=\"");
                 sb.append(tipOverText);
@@ -130,6 +131,7 @@ public class ContentBuilder extends Thread {
             StringBuffer sb = new StringBuffer();
             sb.append("<div id=\"sections\">");
             for (String rss : RSSSources.feeds.keySet()) {
+                String section = extractSection(RSSSources.feeds.get(rss));
                 RSSFeedParser parser = new RSSFeedParser(rss);
                 try {
                     Feed feed = parser.readFeed();
@@ -139,7 +141,7 @@ public class ContentBuilder extends Thread {
                     sb.append("</p>\n");
                     sb = sb.append("<div class=\"content\">\n");
                     for (FeedMessage message : messages) {
-                        sb.append("<p><a onclick=\"sendText(this,'" + userId + "')\" href=\"");
+                        sb.append("<p><a onclick=\"sendText(this,'" + userId + "','" + section + "')\" href=\"");
                         sb.append(message.getLink());
                         sb.append("\">");
                         sb.append(message.getTitle());
@@ -159,6 +161,10 @@ public class ContentBuilder extends Thread {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private String extractSection(String s) {
+        return s.substring("NYTimes ".length());
     }
 
     private String getScores(Map<String,Double> wordScores, String userId) {
