@@ -102,7 +102,17 @@
             $("#accountSectionsHTML").load("jersey/account/sectionsHtml",{id:userId}, function() {
                 jQuery(".content").hide();
                 //toggle the component with class msg_body
-                jQuery(".heading").click(function(){ jQuery(this).next(".content").slideToggle(500);});
+                jQuery(".heading").click(function(){
+                    var section = jQuery(this).text();
+                    if (section.length > 3 && (section.charAt(section.length - 1) == ']')) {
+                       var ch = section.charAt(section.length - 2);
+                       if (ch == "+") {
+                         jQuery(this).text(section.substring(0,section.length - 2) + "-]");
+                       } else if (ch == "-") {
+                         jQuery(this).text(section.substring(0,section.length - 2) + "+]");
+                       }
+                    }
+                    jQuery(this).next(".content").slideToggle(500);});
             });
          }
     </script>

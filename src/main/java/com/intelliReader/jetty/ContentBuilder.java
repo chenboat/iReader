@@ -124,10 +124,7 @@ public class ContentBuilder extends Thread {
     private void initSectionModel(String userId){
         log.info("Build the html page @ " +  Calendar.getInstance());
         try {
-            // First load the word and score info stored in bdb
-            String dbUri = "mongodb://heroku:heroku@ds029831.mongolab.com:29831/ireader_db";
-            Store<String, String> sectionHTMLStore = new MongoDBStore<String, String>(dbUri, "sectionTable", "field", "value");
-            // Next fetch the latest feed messages and build the html tags
+            // Fetch the latest feed messages and build the html tags
             StringBuffer sb = new StringBuffer();
             sb.append("<div id=\"sections\">");
             for (String rss : RSSSources.feeds.keySet()) {
