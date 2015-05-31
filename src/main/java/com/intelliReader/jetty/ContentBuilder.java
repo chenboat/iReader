@@ -46,6 +46,7 @@ public class ContentBuilder extends Thread {
 
     private void buildContentsForAllAccounts() throws Exception{
         for(String userEmail : MongoDBConnections.accountsTable.getAll().keySet()){
+            log.info("Build the html content for user " + userEmail);
             initSectionModel(userEmail);
             initRankingModelInPinterestStyle(userEmail);
         }

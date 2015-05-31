@@ -30,16 +30,33 @@
     <script src="../lib/ng-grid-2.0.11.min.js"></script>
 
     <script src="../script/stopwordList.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+       google.load("visualization", "1", {packages:["corechart"]});
+       function drawChart(userId) {
+         $.get("/jersey/readList/category", { userId: userId})
+         .success(function (jsonData) {
+             var data = new google.visualization.DataTable();
+             data.addColumn('string', 'Category');
+             data.addColumn('number', 'Count');
+             for (var key in jsonData.map) {
+                data.addRow([key,jsonData.map[key]]);
+             }
+             var options = {
+                title: 'My Reading Activities'
+             };
+             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+             chart.draw(data, options);
+         });
+       }
+    </script>
 
     <link rel="stylesheet" type="text/css" href="../lib/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="../lib/ng-grid.min.css"/>
     <link rel="stylesheet" type="text/css" href="../css/style.css"/>
 </head>
 <body>
-    <h2>Stopword List</h2>
-    <p><a href="<c:url value="/home.jsp"/>">Return to the home page.</a></p>
-    <p><a href="<c:url value="/logout"/>">Log out.</a></p>
-
+    <p><a href="<c:url value="/home.jsp"/>">Return to the home page.</a> | <a href="<c:url value="/logout"/>">Log out.</a></p>
     <shiro:user>
         <%
             //This should never be done in a normal page and should exist in a proper MVC controller of some sort, but for this
@@ -49,6 +66,8 @@
         %>
         <p> ${account.email}</p>
 
+        <div id="piechart" style="width: 800px; height: 600px;"></div>
+        <script type="text/javascript">drawChart("${account.email}");</script>
         <!-- Specify a Angular controller script that binds Javascript variables to the feedback messages.-->
         <div class="message" ng-controller="alertMessagesController">
             <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
@@ -59,7 +78,7 @@
             <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
             <div ng-controller="stopwordList" ng-init="init('${account.email}')">
                 <div>
-                    <h3>Stopword List</h3>
+                    <h5>Stopword List</h5>
                 </div>
                 <!-- Binds the grid component to be displayed. -->
                 <div class="gridStyle" ng-grid="gridOptions"></div>
@@ -78,11 +97,11 @@
         <div class="form" ng-controller="entryFormController" ng-init="init('${account.email}')">
             <!-- Verify entry, if there is no id present, that we are Adding a Person -->
             <div ng-if="entry.id == null">
-                <h3>Add Entry</h3>
+                <h5>Add Entry</h5>
             </div>
             <!-- Otherwise it's an Edit -->
             <div ng-if="entry.id != null">
-                <h3>Edit Entry</h3>
+                <h5>Edit Entry</h5>
             </div>
 
             <div>
@@ -116,7 +135,7 @@
             <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
             <div ng-controller="readList" ng-init="init('${account.email}')">
                 <div>
-                    <h3>Articles Read</h3>
+                    <h5>Articles Read</h5>
                 </div>
                 <!-- Binds the grid component to be displayed. -->
                 <div class="gridStyle" ng-grid="gridOptions"></div>

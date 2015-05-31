@@ -1,8 +1,12 @@
 package com.intelliReader.jetty;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.intelliReader.storage.MongoDBConnections;
 import com.intelliReader.storage.MongoDBStore;
 import com.intelliReader.storage.Store;
+import org.eclipse.jetty.util.ajax.JSON;
+import org.eclipse.jetty.util.ajax.JSONObjectConvertor;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -31,7 +35,7 @@ public class ReadListResource {
                                               @DefaultValue("asc")
                                               @QueryParam("sortDirections")
                                               String sortDirections,
-                                              @DefaultValue("40")
+                                              @DefaultValue("20")
                                               @QueryParam("pageSize")
                                               Integer pageSize,
                                               @DefaultValue("anonymous")
@@ -46,6 +50,30 @@ public class ReadListResource {
         paginatedListWrapper.setUserId(userId);
         return findEntries(paginatedListWrapper);
     }
+
+    @GET
+    @Path("/category")
+    @Produces({MediaType.APPLICATION_JSON})
+    public MapJson getCategory(@QueryParam("userId") String userId) throws Exception{
+        Map<String,Integer> categoryCount = new HashMap<String, Integer>();
+        Map<String,Map> map = store.getAll();
+        for(String k:  map.keySet()){
+            if(k.startsWith(userId + HTMLUtil.ACCOUNT_DELIMITER)) {      // filter by member id
+                Map values = map.get(k);
+                String section = (String)values.get("section");
+                Integer count = categoryCount.get(section);
+                if(count == null) {
+                    categoryCount.put(section,1);
+                } else {
+                    categoryCount.put(section,count+1);
+                }
+            }
+        }
+        MapJson json = new MapJson();
+        json.setMap(categoryCount);
+        return json;
+    }
+
 
     private PaginatedListWrapper<Entry> findEntries(PaginatedListWrapper<Entry> wrapper) throws Exception {
         wrapper.setTotalResults(countEntries(wrapper.getUserId()));

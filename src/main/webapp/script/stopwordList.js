@@ -15,6 +15,7 @@ app.controller('stopwordList', function ($scope, $http, $rootScope) {
                 sortFields: $scope.sortInfo.fields[0],
                 sortDirections: $scope.sortInfo.directions[0],
                 userId: $scope.userEmail,
+                pageSize: 20,
             }
         }).success(function (data) {
             $scope.stopwordList = data;
@@ -163,6 +164,7 @@ app.controller('readList', function ($scope, $http, $rootScope) {
                 sortFields: $scope.sortInfo.fields[0],
                 sortDirections: $scope.sortInfo.directions[0],
                 userId: $scope.userEmail,
+                pageSize: 20,
             }
         }).success(function (data) {
             $scope.readList = data;
