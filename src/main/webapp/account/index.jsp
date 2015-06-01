@@ -32,7 +32,7 @@
     <script src="../script/stopwordList.js"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
-       google.load("visualization", "1", {packages:["corechart"]});
+       google.load("visualization", "1", {packages:["corechart","table"]});
        function drawChart(userId) {
          $.get("/jersey/readList/category", { userId: userId})
          .success(function (jsonData) {
@@ -47,15 +47,18 @@
              };
              var chart = new google.visualization.PieChart(document.getElementById('piechart'));
              chart.draw(data, options);
+             var table = new google.visualization.Table(document.getElementById('category_table'));
+             table.draw(data, {sortColumn : 1, sortAscending : false });
          });
        }
     </script>
-
-    <link rel="stylesheet" type="text/css" href="../lib/bootstrap.min.css"/>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="../lib/ng-grid.min.css"/>
     <link rel="stylesheet" type="text/css" href="../css/style.css"/>
 </head>
 <body>
+  <div class="container">
     <p><a href="<c:url value="/home.jsp"/>">Return to the home page.</a> | <a href="<c:url value="/logout"/>">Log out.</a></p>
     <shiro:user>
         <%
@@ -65,90 +68,101 @@
             request.setAttribute("account", org.apache.shiro.SecurityUtils.getSubject().getPrincipals().oneByType(java.util.Map.class));
         %>
         <p> ${account.email}</p>
-
-        <div id="piechart" style="width: 800px; height: 600px;"></div>
-        <script type="text/javascript">drawChart("${account.email}");</script>
-        <!-- Specify a Angular controller script that binds Javascript variables to the feedback messages.-->
-        <div class="message" ng-controller="alertMessagesController">
-            <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
+        <div class="row">
+            <div class="col-sm-6" id="piechart" style="width: 450px; height: 450px;"></div>
+            <div class="col-sm-6" id="category_table"></div>
+            <script type="text/javascript">drawChart("${account.email}");</script>
         </div>
 
-        <!-- Specify a Angular controller script that binds Javascript variables to the grid.-->
-        <div class="grid">
-            <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
-            <div ng-controller="stopwordList" ng-init="init('${account.email}')">
-                <div>
-                    <h5>Stopword List</h5>
+        <div class="row" style="background-color:lavender;">
+            <!-- Specify a Angular controller script that binds Javascript variables to the feedback messages.-->
+            <div class="col-sm-12">
+                <div class="message" ng-controller="alertMessagesController">
+                    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{{alert.msg}}</alert>
                 </div>
-                <!-- Binds the grid component to be displayed. -->
-                <div class="gridStyle" ng-grid="gridOptions"></div>
-
-                <!--  Bind the pagination component to be displayed. -->
-                <pagination direction-links="true" boundary-links="true"
-                            total-items="stopwordList.totalResults"
-                            page="stopwordList.currentPage"
-                            items-per-page="stopwordList.pageSize"
-                            on-select-page="refreshGrid(page)">
-                </pagination>
-            </div>
-        </div>
-
-        <!-- Specify a Angular controller script that binds Javascript variables to the form.-->
-        <div class="form" ng-controller="entryFormController" ng-init="init('${account.email}')">
-            <!-- Verify entry, if there is no id present, that we are Adding a Person -->
-            <div ng-if="entry.id == null">
-                <h5>Add Entry</h5>
-            </div>
-            <!-- Otherwise it's an Edit -->
-            <div ng-if="entry.id != null">
-                <h5>Edit Entry</h5>
             </div>
 
-            <div>
-                <!-- Specify the function to be called on submit and disable HTML5 validation, since we're using Angular validation-->
-                <form name="entryForm" ng-submit="updateEntry()" novalidate>
-
-                    <!-- Display an error if the input is invalid and is dirty (only when someone changes the value) -->
-                    <div class="form-group" ng-class="{'has-error' : entryForm.id.$invalid && entryForm.id.$dirty}">
-                        <label for="id">id:</label>
-                        <!-- Display a check when the field is valid and was modified -->
-                        <span ng-class="{'glyphicon glyphicon-ok' : entryForm.id.$valid && entryForm.id.$dirty}"></span>
-
-                        <input id="id" name="id" type="text" class="form-control" maxlength="50"
-                               ng-model="entry.id"/>
-
-                        <!-- Validation messages to be displayed on required, minlength and maxlength -->
-                        <p class="help-block" ng-show="entryForm.id.$error.required">Add Id.</p>
+            <!-- Specify a Angular controller script that binds Javascript variables to the grid.-->
+            <div class="col-sm-12">
+                <!-- Specify a Angular controller script that binds Javascript variables to the form.-->
+                <div class="form" ng-controller="entryFormController" ng-init="init('${account.email}')">
+                    <!-- Verify entry, if there is no id present, that we are Adding a Person -->
+                    <div ng-if="entry.id == null">
+                        <h5>Add Entry</h5>
+                    </div>
+                    <!-- Otherwise it's an Edit -->
+                    <div ng-if="entry.id != null">
+                        <h5>Edit Entry</h5>
                     </div>
 
-                    <!-- Form buttons. The 'Save' button is only enabled when the form is valid. -->
-                    <div class="buttons">
-                        <button type="button" class="btn btn-primary" ng-click="clearForm()">Clear</button>
-                        <button type="submit" class="btn btn-primary" ng-disabled="entryForm.$invalid">Save</button>
+                    <div>
+                        <!-- Specify the function to be called on submit and disable HTML5 validation, since we're using Angular validation-->
+                        <form name="entryForm" ng-submit="updateEntry()" novalidate>
+
+                            <!-- Display an error if the input is invalid and is dirty (only when someone changes the value) -->
+                            <div class="form-group" ng-class="{'has-error' : entryForm.id.$invalid && entryForm.id.$dirty}">
+                                <label for="id">id:</label>
+                                <!-- Display a check when the field is valid and was modified -->
+                                <span ng-class="{'glyphicon glyphicon-ok' : entryForm.id.$valid && entryForm.id.$dirty}"></span>
+
+                                <input id="id" name="id" type="text" class="form-control" maxlength="50"
+                                       ng-model="entry.id"/>
+
+                                <!-- Validation messages to be displayed on required, minlength and maxlength -->
+                                <p class="help-block" ng-show="entryForm.id.$error.required">Add Id.</p>
+                            </div>
+
+                            <!-- Form buttons. The 'Save' button is only enabled when the form is valid. -->
+                            <div class="buttons">
+                                <button type="button" class="btn btn-primary" ng-click="clearForm()">Clear</button>
+                                <button type="submit" class="btn btn-primary" ng-disabled="entryForm.$invalid">Save</button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
+                <div class="grid">
+                    <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
+                    <div ng-controller="stopwordList" ng-init="init('${account.email}')">
+                        <div>
+                            <h5>Stopword List</h5>
+                        </div>
+                        <!-- Binds the grid component to be displayed. -->
+                        <div class="gridStyle" ng-grid="gridOptions"></div>
+
+                        <!--  Bind the pagination component to be displayed. -->
+                        <pagination direction-links="true" boundary-links="true"
+                                    total-items="stopwordList.totalResults"
+                                    page="stopwordList.currentPage"
+                                    items-per-page="stopwordList.pageSize"
+                                    on-select-page="refreshGrid(page)">
+                        </pagination>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Display the articles already read.-->
-        <div class="grid">
-            <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
-            <div ng-controller="readList" ng-init="init('${account.email}')">
-                <div>
-                    <h5>Articles Read</h5>
-                </div>
-                <!-- Binds the grid component to be displayed. -->
-                <div class="gridStyle" ng-grid="gridOptions"></div>
+        <div class="row">
+            <!-- Display the articles already read.-->
+            <div class="grid">
+                <!-- Specify a JavaScript controller script that binds Javascript variables to the HTML.-->
+                <div ng-controller="readList" ng-init="init('${account.email}')">
+                    <div>
+                        <h5>Articles Read</h5>
+                    </div>
+                    <!-- Binds the grid component to be displayed. -->
+                    <div class="gridStyle" ng-grid="gridOptions"></div>
 
-                <!--  Bind the pagination component to be displayed. -->
-                <pagination direction-links="true" boundary-links="true"
-                            total-items="readList.totalResults"
-                            page="readList.currentPage"
-                            items-per-page="readList.pageSize"
-                            on-select-page="refreshGrid(page)">
-                </pagination>
+                    <!--  Bind the pagination component to be displayed. -->
+                    <pagination direction-links="true" boundary-links="true"
+                                total-items="readList.totalResults"
+                                page="readList.currentPage"
+                                items-per-page="readList.pageSize"
+                                on-select-page="refreshGrid(page)">
+                    </pagination>
+                </div>
             </div>
         </div>
     </shiro:user>
+  </div>
 </body>
 </html>
