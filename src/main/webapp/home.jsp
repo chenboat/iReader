@@ -19,7 +19,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Apache Shiro Tutorial Webapp</title>
+    <title>NYTimes Reader</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Add some nice styling and functionality.  We'll just use Twitter Bootstrap -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
@@ -79,13 +79,13 @@
     }
 
     div#columns figure figcaption {
-      font-size: .9rem;
+      font-size: 1.3rem;
     	color: #444;
       line-height: 1.5;
     }
 
     div#columns small {
-      font-size: 1rem;
+      font-size: 1.3rem;
       float: right;
       color: #aaa;
     }
