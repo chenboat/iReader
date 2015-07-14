@@ -130,11 +130,11 @@
 <body>
     <p>
       <shiro:authenticated>Visit your <a href="<c:url value="/account"/>">account page</a>.</shiro:authenticated>
-      <shiro:notAuthenticated>If you want to access the authenticated-only <a href="<c:url value="/account"/>">account page</a>,
-        you will need to log-in first.</shiro:notAuthenticated>
+      <shiro:notAuthenticated>To access the authenticated-only <a href="<c:url value="/account"/>">account page</a>,
+        log-in first.</shiro:notAuthenticated>
 
-      ( <shiro:user> <a href="<c:url value="/logout"/>">Log out</a></shiro:user>
-        <shiro:guest><a href="<c:url value="/loginOrReg.jsp"/>">Log in</a> <b>You are NOT logged in</b> </shiro:guest> )
+       (<shiro:user> <a href="<c:url value="/logout"/>">Log out</a></shiro:user>
+        <shiro:guest><a href="<c:url value="/loginOrReg.jsp"/>">Log in</a></shiro:guest>)
     </p>
 
     <p>
