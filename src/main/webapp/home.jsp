@@ -25,78 +25,91 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
     <style>
-    div.img {
-        margin: 5px;
-        padding: 5px;
-        border: 1px solid #0000ff;
-        height: auto;
-        width: auto;
-        float: left;
-        text-align: center;
-    }
+        div.img {
+            margin: 5px;
+            padding: 5px;
+            border: 1px solid #0000ff;
+            height: auto;
+            width: auto;
+            float: left;
+            text-align: center;
+        }
 
-    div.img img {
-        display: inline;
-        margin: 5px;
-        border: 1px solid #ffffff;
-    }
+        div.img img {
+            display: inline;
+            margin: 5px;
+            border: 1px solid #ffffff;
+        }
 
-    div.img a:hover img {
-        border:1px solid #0000ff;
-    }
+        div.img a:hover img {
+            border:1px solid #0000ff;
+        }
 
-    div.desc {
-        text-align: left;
-        font-weight: normal;
-        width: 150px;
-        margin: 5px;
-    }
-    #columns {
-    	column-width: 320px;
-    	column-gap: 15px;
-      width: 90%;
-    	max-width: 1100px;
-    	margin: 50px auto;
-    }
+        div.desc {
+            text-align: left;
+            font-weight: normal;
+            width: 150px;
+            margin: 5px;
+        }
+        #columns {
+            column-width: 320px;
+            column-gap: 15px;
+          width: 90%;
+            max-width: 1100px;
+            margin: 50px auto;
+        }
 
-    div#columns figure {
-    	background: #fefefe;
-    	border: 2px solid #fcfcfc;
-    	box-shadow: 0 1px 2px rgba(34, 25, 25, 0.4);
-    	margin: 0 2px 15px;
-    	padding: 15px;
-    	padding-bottom: 10px;
-    	transition: opacity .4s ease-in-out;
-      display: inline-block;
-      column-break-inside: avoid;
-    }
+        div#columns figure {
+            background: #fefefe;
+            border: 2px solid #fcfcfc;
+            box-shadow: 0 1px 2px rgba(34, 25, 25, 0.4);
+            margin: 0 2px 15px;
+            padding: 15px;
+            padding-bottom: 10px;
+            transition: opacity .4s ease-in-out;
+          display: inline-block;
+          column-break-inside: avoid;
+        }
 
-    div#columns figure img {
-    	width: 100%; height: auto;
-    	border-bottom: 1px solid #ccc;
-    	padding-bottom: 15px;
-    	margin-bottom: 5px;
-    }
+        div#columns figure img {
+            width: 100%; height: auto;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 15px;
+            margin-bottom: 5px;
+        }
 
-    div#columns figure figcaption {
-      font-size: 1.3rem;
-    	color: #444;
-      line-height: 1.5;
-    }
+        div#columns figure figcaption {
+          font-size: 1.3rem;
+            color: #444;
+          line-height: 1.5;
+        }
 
-    div#columns small {
-      font-size: 1.3rem;
-      float: right;
-      color: #aaa;
-    }
+        div#columns small {
+          font-size: 1.3rem;
+          float: right;
+          color: #aaa;
+        }
 
-    div#columns small a {
-      color: #666;
-      text-decoration: none;
-      transition: .4s color;
-    }</style>
+        div#columns small a {
+          color: #666;
+          text-decoration: none;
+          transition: .4s color;
+        }
+
+        .grid {
+           max-width: 1400px;
+        }
+        .grid-item {
+           width: 240px;
+           height: auto;
+           float: left;
+           background: #fefefe;
+           border-radius: 5px;
+        }
+    </style>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/3.3.1/masonry.pkgd.min.js"></script>
     <script>
          function loadSectionsHTMLPage(userId) {
             $("#accountSectionsHTML").load("jersey/account/sectionsHtml",{id:userId}, function() {
@@ -112,19 +125,36 @@
                          jQuery(this).text(section.substring(0,section.length - 2) + "+]");
                        }
                     }
-                    jQuery(this).next(".content").slideToggle(500);});
+                    jQuery(this).parent().next(".content").slideToggle(500);});
             });
          }
     </script>
     <script>
          function loadRankingHTMLPage(userId) {
-             $("#accountRankingHTML").load("jersey/account/rankingHtml",{id:userId});
+             $("#accountRankingHTML").load("jersey/account/rankingHtml",{id:userId},
+               function() {
+                 var $grid = $('.grid').masonry({ columnWidth: 250, itemSelector: '.grid-item'});
+               });
          }
     </script>
     <script type="text/javascript">
          function sendText(elementId,userId,section) {
              var titleAndSummary=elementId.firstChild.data + " " + elementId.parentNode.lastChild.textContent;
              $.post("jersey/account/record", {id:userId, title:titleAndSummary, section: section});     }
+    </script>
+    <script type="text/javascript">
+        function up(elmnt) {
+            var section = elmnt.parentElement.getAttribute("section");
+            var selected = $("div").filter(function() {return $(this).attr("section") == section});
+            var $grid = $('.grid').masonry({
+              columnWidth: 250,
+              itemSelector: '.grid-item'
+            });
+            // make jQuery object
+            copied = selected.clone();
+            $grid.masonry( 'remove', selected).masonry();
+            $grid.prepend(copied).masonry('prepended', copied);
+        }
     </script>
 </head>
 <body>
@@ -146,11 +176,8 @@
                         <div id="accountSectionsHTML"></div>
                         <script> loadSectionsHTMLPage("anonymous");</script>
                     </div>
-                    <div style="column-count:4;-moz-column-count:4; /* Firefox */
-                                        -webkit-column-count:4; /* Safari and Chrome */">
-                        <div id="accountRankingHTML"></div>
-                        <script> loadRankingHTMLPage("anonymous");</script>
-                    </div>
+                    <div id="accountRankingHTML"></div>
+                    <script>loadRankingHTMLPage("anonymous");</script>
                 </div>
         </shiro:guest>
         <shiro:user>
@@ -167,11 +194,8 @@
                     <div id="accountSectionsHTML"></div>
                     <script> loadSectionsHTMLPage("${account.email}");</script>
                 </div>
-                <div style="column-count:4;-moz-column-count:4; /* Firefox */
-                                    -webkit-column-count:4; /* Safari and Chrome */">
-                    <div id="accountRankingHTML"></div>
-                    <script> loadRankingHTMLPage("${account.email}");</script>
-                </div>
+                <div id="accountRankingHTML"></div>
+                <script>loadRankingHTMLPage("${account.email}");</script>
             </div>
         </shiro:user>
 

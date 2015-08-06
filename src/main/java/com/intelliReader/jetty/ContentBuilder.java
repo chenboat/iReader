@@ -85,7 +85,7 @@ public class ContentBuilder extends Thread {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        sb.append("<div id=\"columns\">");
+        sb.append("<div class=\"grid\" id=\"columns\">");
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
             Map<String,Double> wordScores = msg.getWordWithScores();
@@ -94,31 +94,43 @@ public class ContentBuilder extends Thread {
             picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
             if(picURL != null){     // only add articles having pics
                 String section = msgHash.get(message.getTitle());
-                sb.append("<figure>" + "    <img src=\"");
-                sb.append(picURL);
-                sb.append("\">\n");
-                sb.append("<figcaption>");
-                sb.append("<a onclick=\"sendText(this,'" + userId  + "','" + section + "')\" href=\"");
-                sb.append(message.getLink());
-                sb.append("\" title=\"");
-                sb.append(tipOverText);
-                sb.append("\">");
-                sb.append(message.getTitle());
-                sb.append("</a>");
-                sb.append("(");
-                sb.append(String.format("%.2f", msg.getScore()));
-                sb.append(")");
-                sb.append("<small>");
-                sb.append(message.getDescription());
-                sb.append("</small>");
-                sb.append("</figcaption>");
-                sb.append("</figure>");
+                builArticleWithPic(userId, sb, msg, message, tipOverText, picURL, section);
             }
         }
         sb.append("</div>");
         String rankListHTML = sb.toString();
 
         MongoDBConnections.accountRankingHTMLStore.put(userId,rankListHTML);
+    }
+
+    private void builArticleWithPic(String userId,
+                                    StringBuilder sb,
+                                    KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg,
+                                    FeedMessage message,
+                                    String tipOverText,
+                                    String picURL,
+                                    String section) {
+        sb.append("<div class=\"grid-item\" section=\"" + section +  "\">");
+        sb.append("<figure>" + "    <img src=\"");
+        sb.append(picURL);
+        sb.append("\">\n");
+        sb.append("<figcaption>");
+        sb.append("<a onclick=\"sendText(this,'" + userId  + "','" + section + "')\" href=\"");
+        sb.append(message.getLink());
+        sb.append("\" title=\"");
+        sb.append(tipOverText);
+        sb.append("\">");
+        sb.append(message.getTitle());
+        sb.append("</a>");
+        sb.append("(");
+        sb.append(String.format("%.2f", msg.getScore()));
+        sb.append(")");
+        sb.append("<small>");
+        sb.append(message.getDescription());
+        sb.append("</small>");
+        sb.append("</figcaption>");
+        sb.append("</figure>");
+        sb.append("</div>");
     }
 
 
@@ -134,8 +146,9 @@ public class ContentBuilder extends Thread {
                 try {
                     Feed feed = parser.readFeed();
                     List<FeedMessage> messages = feed.getMessages();
-                    sb.append("<p class=\"heading\">");
-                    sb.append(RSSSources.feeds.get(rss) + " [+]");
+                    sb.append("<p section=\"" + section + "\">");
+                    sb.append("<span class=\"heading\">" + RSSSources.feeds.get(rss) + " [+]</span>" +
+                            "<span onclick=\"up(this)\"> &uarr;&nbsp; </span>");
                     sb.append("</p>\n");
                     sb = sb.append("<div class=\"content\">\n");
                     for (FeedMessage message : messages) {
