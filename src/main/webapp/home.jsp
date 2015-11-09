@@ -134,6 +134,11 @@
              $("#accountRankingHTML").load("jersey/account/rankingHtml",{id:userId},
                function() {
                  var $grid = $('.grid').masonry({ columnWidth: 250, itemSelector: '.grid-item'});
+                 if (typeof(Storage) != "undefined") {
+                     if (sessionStorage.sectionPreference) {
+                       upSection(sessionStorage.sectionPreference);
+                     }
+                  }
                });
          }
     </script>
@@ -145,6 +150,15 @@
     <script type="text/javascript">
         function up(elmnt) {
             var section = elmnt.parentElement.getAttribute("section");
+            upSection(section);
+            if (typeof(Storage) != "undefined") {
+              // set a client side storage to record the preference.
+              sessionStorage.sectionPreference = section;
+            }
+        }
+    </script>
+    <script type="text/javascript">
+        function upSection(section) {
             var selected = $("div").filter(function() {return $(this).attr("section") == section});
             var $grid = $('.grid').masonry({
               columnWidth: 250,
