@@ -23,11 +23,13 @@ public class TestHTMLUtil extends TestCase {
                     "http://rss.nytimes.com/c/34625/f/640310/s/3eddc8cf/sc/7/l/0L0Snytimes0N0C20A140C0A90C270Cworld0Casia0Cindia0Echina0Eladakh0Edispute0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm",
                     "http://rss.nytimes.com/c/34625/f/640329/s/3ed568f2/sc/22/l/0L0Snytimes0N0C20A140C0A90C260Cbusiness0Cinternational0Cin0Echina0Esteel0Econsumption0Edrops0Eas0Eeconomy0Eslows0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm",
                     "http://rss.nytimes.com/c/34625/f/667200/s/3ee4a63d/sc/11/l/0L0Snytimes0N0C20A140C0A90C280Cworld0Cafrica0Cliberia0Ehealth0Echief0Eis0Eunder0Equarantine0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm",
-                    "http://rss.nytimes.com/c/34625/f/640350/s/3ee93a60/sc/13/l/0L0Snytimes0N0C20A140C0A90C290Csports0Cgolf0Cryder0Ecup0E20A140Eeuropeans0Emake0Eeasy0Ework0Eof0Eus0Efor0Ethird0Estraight0Evictory0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm"
+                    "http://rss.nytimes.com/c/34625/f/640350/s/3ee93a60/sc/13/l/0L0Snytimes0N0C20A140C0A90C290Csports0Cgolf0Cryder0Ecup0E20A140Eeuropeans0Emake0Eeasy0Ework0Eof0Eus0Efor0Ethird0Estraight0Evictory0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm",
+                    "http://rss.nytimes.com/c/34625/f/640380/s/4b3e15b4/sc/15/l/0L0Snytimes0N0Cvideo0Cscience0Cspace0C10A0A0A0A0A0A0A40A190A440Cnasa0Ereleases0Ehigh0Edefinition0Esun0Evideo0Bhtml0Dpartner0Frss0Gemc0Frss/story01.htm"
         };
 
         for(String s:str){
-            System.out.println(HTMLUtil.getPicURLFromNYTimesLink(s));
+            String picUrl = HTMLUtil.getPicURLFromNYTimesLink(s);
+            assert picUrl == null || !picUrl.contains("\"");
         }
 
     }
