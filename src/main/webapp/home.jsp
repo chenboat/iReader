@@ -106,10 +106,31 @@
            background: #fefefe;
            border-radius: 5px;
         }
+        div.suggestions {
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            border: 1px solid black;
+            position: absolute;
+            z-index: 1000;
+            background-color: white;
+        }
+
+        div.suggestions div {
+            cursor: default;
+            padding: 0px 3px;
+        }
+
+        div.suggestions div.current {
+            background-color: #3366cc;
+            color: white;
+        }
     </style>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/3.3.1/masonry.pkgd.min.js"></script>
+    <script src="script/autosuggest.js"></script>
+    <script src="script/title_suggestions.js"></script>
+
     <script>
          function loadSectionsHTMLPage(userId) {
             $("#accountSectionsHTML").load("jersey/account/sectionsHtml",{id:userId}, function() {
@@ -126,6 +147,16 @@
                        }
                     }
                     jQuery(this).parent().next(".content").slideToggle(500);});
+                // Load the data into auto suggestion box.
+                var array = [];
+                var links = [];
+                var elements = document.getElementById("accountSectionsHTML").getElementsByTagName("a");
+                for (var i = 0; i < elements.length; i++) {
+                    array.push(elements[i].textContent);
+                    links.push(elements[i].getAttribute("href"));
+                }
+                var oTextbox = new AutoSuggestControl(document.getElementById("txt1"),
+                                                new TitleSuggestions(array, links));
             });
          }
     </script>
@@ -179,6 +210,7 @@
 
        (<shiro:user> <a href="<c:url value="/logout"/>">Log out</a></shiro:user>
         <shiro:guest><a href="<c:url value="/loginOrReg.jsp"/>">Log in</a></shiro:guest>)
+       <input type="text" id="txt1" size="100"/>
     </p>
 
     <p>
