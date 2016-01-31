@@ -42,10 +42,14 @@ function AutoSuggestControl(oTextbox /*:HTMLInputElement*/,
  * @scope private
  * @param aSuggestions An array of suggestion strings.
  * @param aLinks An array of http links: one for each suggestion string.
+ * @param aSections An array of sections
+ * @param userId
  * @param bTypeAhead If the control should provide a type ahead suggestion.
  */
 AutoSuggestControl.prototype.autosuggest = function (aSuggestions /*:Array*/,
                                                      aLinks       /*:Array*/,
+                                                     aSections    /*:Array*/,
+                                                     userId       /*:Array*/,
                                                      bTypeAhead /*:boolean*/) {
 
     //make sure there's at least one suggestion
@@ -54,7 +58,7 @@ AutoSuggestControl.prototype.autosuggest = function (aSuggestions /*:Array*/,
            this.typeAhead(aSuggestions[0]);
         }
 
-        this.showSuggestions(aSuggestions, aLinks);
+        this.showSuggestions(aSuggestions, aLinks, aSections, userId);
     } else {
         this.hideSuggestions();
     }
@@ -270,7 +274,7 @@ AutoSuggestControl.prototype.previousSuggestion = function () {
     var cSuggestionNodes = this.layer.childNodes;
 
     if (cSuggestionNodes.length > 0 && this.cur >= 0) {
-        if (this.cur = 0) {
+        if (this.cur == 0) {
             this.cur = cSuggestionNodes.length - 1;
         }
         else {
@@ -313,7 +317,9 @@ AutoSuggestControl.prototype.selectRange = function (iStart /*:int*/, iLength /*
  * @param aSuggestions An array of suggestions for the control.
  */
 AutoSuggestControl.prototype.showSuggestions = function (aSuggestions /*:Array*/,
-                                                         aLinks /*:Array*/) {
+                                                         aLinks /*:Array*/,
+                                                         aSections /*:Array*/,
+                                                         userId) {
 
     var oDiv = null;
     this.layer.innerHTML = "";  //clear contents of the layer
@@ -324,7 +330,13 @@ AutoSuggestControl.prototype.showSuggestions = function (aSuggestions /*:Array*/
         aEle = document.createElement("a");
         link = document.createAttribute("href");
         link.value = aLinks[i];
+        section = document.createAttribute("section");
+        section.value = aSections[i];
+        user = document.createAttribute("userId");
+        user.value = userId;
         aEle.setAttributeNode(link);
+        aEle.setAttributeNode(section);
+        aEle.setAttributeNode(user);
         aEle.appendChild(document.createTextNode(aSuggestions[i]));
         oDiv.appendChild(aEle);
         this.layer.appendChild(oDiv);
@@ -362,6 +374,10 @@ AutoSuggestControl.prototype.gotoSuggestion = function () {
     if (cSuggestionNodes.length > 0 && this.cur < cSuggestionNodes.length) {
         var oNode = cSuggestionNodes[this.cur];
         var aEle = oNode.firstChild;
+        var title = aEle.textContent;
+        var userId = aEle.getAttribute("userId");
+        var section = aEle.getAttribute("section");
+        $.post("jersey/account/record", {id:userId, title:title, section: section});
         window.location.href = aEle.getAttribute("href");
     }
 };

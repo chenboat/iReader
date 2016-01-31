@@ -1,9 +1,11 @@
 /*
  * Suggests the article titles.
  */
-function TitleSuggestions(title_list, link_list) {
+function TitleSuggestions(title_list, link_list, section_list, user_id) {
     this.titles = title_list;
     this.links = link_list;
+    this.sections = section_list;
+    this.userId = user_id;
 }
 
 /**
@@ -15,6 +17,7 @@ TitleSuggestions.prototype.requestSuggestions = function (oAutoSuggestControl /*
                                                           bTypeAhead /*:boolean*/) {
     var aSuggestions = [];
     var aLinks = [];
+    var aSections = [];
     var sTextboxValue = oAutoSuggestControl.textbox.value;
 
     if (sTextboxValue.length > 0){
@@ -25,11 +28,12 @@ TitleSuggestions.prototype.requestSuggestions = function (oAutoSuggestControl /*
                     (sTextboxValue.toLowerCase()) != -1) {
                 aSuggestions.push(this.titles[i]);
                 aLinks.push(this.links[i]);
+                aSections.push(this.sections[i]);
             }
         }
     }
 
     //provide suggestions to the control and disable type ahead.
-    oAutoSuggestControl.autosuggest(aSuggestions, aLinks, false);
+    oAutoSuggestControl.autosuggest(aSuggestions, aLinks, aSections, this.userId, false);
 };
 

@@ -150,13 +150,15 @@
                 // Load the data into auto suggestion box.
                 var array = [];
                 var links = [];
+                var sections = [];
                 var elements = document.getElementById("accountSectionsHTML").getElementsByTagName("a");
                 for (var i = 0; i < elements.length; i++) {
                     array.push(elements[i].textContent);
                     links.push(elements[i].getAttribute("href"));
+                    sections.push(elements[i].parentElement.parentElement.previousElementSibling.getAttribute("section"));
                 }
                 var oTextbox = new AutoSuggestControl(document.getElementById("txt1"),
-                                                new TitleSuggestions(array, links));
+                                                new TitleSuggestions(array, links, sections, userId));
             });
          }
     </script>
