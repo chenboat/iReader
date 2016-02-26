@@ -89,7 +89,7 @@ AutoSuggestControl.prototype.createDropDown = function () {
         if (oEvent.type == "mousedown") {
             oThis.textbox.value = oTarget.firstChild.nodeValue;
             oThis.hideSuggestions();
-            oThis.gotoSuggestion();
+            oThis.gotoSuggestionElement(oTarget.parentElement);
         } else if (oEvent.type == "mouseover") {
             oThis.highlightSuggestion(oTarget);
         } else {
@@ -374,11 +374,15 @@ AutoSuggestControl.prototype.gotoSuggestion = function () {
 
     if (cSuggestionNodes.length > 0 && this.cur < cSuggestionNodes.length) {
         var oNode = cSuggestionNodes[this.cur];
-        var aEle = oNode.firstChild;
-        var title = aEle.textContent;
-        var userId = aEle.getAttribute("userId");
-        var section = aEle.getAttribute("section");
-        $.post("jersey/account/record", {id:userId, title:title, section: section});
-        window.location.href = aEle.getAttribute("href");
+        this.gotoSuggestionElement(oNode);
     }
+};
+
+AutoSuggestControl.prototype.gotoSuggestionElement = function (selectedElement) {
+  var aEle = selectedElement.firstChild;
+  var title = aEle.textContent;
+  var userId = aEle.getAttribute("userId");
+  var section = aEle.getAttribute("section");
+  $.post("jersey/account/record", {id:userId, title:title, section: section});
+  window.location.href = aEle.getAttribute("href");
 };
