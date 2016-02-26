@@ -89,7 +89,7 @@ AutoSuggestControl.prototype.createDropDown = function () {
         if (oEvent.type == "mousedown") {
             oThis.textbox.value = oTarget.firstChild.nodeValue;
             oThis.hideSuggestions();
-            this.gotoSuggestion();
+            oThis.gotoSuggestion();
         } else if (oEvent.type == "mouseover") {
             oThis.highlightSuggestion(oTarget);
         } else {
