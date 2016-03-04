@@ -206,7 +206,7 @@
 </head>
 <body>
     <p>
-      <img src="pics/ireader.png" height="24" width="24">
+      <img src="pics/ireader.png" height="24" width="24" hspace="50">
       <input type="text" id="txt1" size="80" placeholder="Type to search articles"/>
       <shiro:authenticated>Visit your <a href="<c:url value="/account"/>">account page</a>.</shiro:authenticated>
       <shiro:notAuthenticated><a href="<c:url value="/account"/>">Register</a></shiro:notAuthenticated>
