@@ -207,12 +207,11 @@
 <body>
     <p>
       <shiro:authenticated>Visit your <a href="<c:url value="/account"/>">account page</a>.</shiro:authenticated>
-      <shiro:notAuthenticated>To access the authenticated-only <a href="<c:url value="/account"/>">account page</a>,
-        log-in first.</shiro:notAuthenticated>
+      <shiro:notAuthenticated><a href="<c:url value="/account"/>">Register</a></shiro:notAuthenticated>
 
        (<shiro:user> <a href="<c:url value="/logout"/>">Log out</a></shiro:user>
         <shiro:guest><a href="<c:url value="/loginOrReg.jsp"/>">Log in</a></shiro:guest>)
-       <input type="text" id="txt1" size="100"/>
+       <input type="text" id="txt1" size="100" placeholder="Type to search articles"/>
     </p>
 
     <p>
