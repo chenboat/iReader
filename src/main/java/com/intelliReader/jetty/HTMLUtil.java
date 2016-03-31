@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class HTMLUtil {
     public static final String ACCOUNT_DELIMITER = ":";
     private static final Pattern p = Pattern.compile(
-            "http://graphics..nytimes.com/[^\"]*thumbLarge.jpg|http://static[^\"]*.nyt.com/[^\"]*.jpg"); // the regex to match the picture url
+            "https?://graphics..nytimes.com/[^\"]*thumbLarge.jpg|https?://static[^\"]*.nyt.com/[^\"]*.jpg"); // the regex to match the picture url
 
     public static void setHTMLPagePrelude(Request baseRequest,
                                           HttpServletResponse response) throws IOException {
