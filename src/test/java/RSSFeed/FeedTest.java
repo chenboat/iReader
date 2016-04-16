@@ -17,9 +17,9 @@ public class FeedTest {
     public static void main(String[] args) throws XMLStreamException {
         RSSFeedParser parser = new RSSFeedParser("http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml");
         Feed feed = parser.readFeed();
-        System.out.println(feed);
         for (FeedMessage message : feed.getMessages()) {
-            System.out.println(message);
+            assert !message.getLink().isEmpty();
+            assert !message.getTitle().isEmpty();
         }
 
     }

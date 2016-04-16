@@ -1,8 +1,5 @@
 package com.intelliReader.newsfeed;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.impl.Log4JLogger;
-
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -23,7 +20,6 @@ import java.util.logging.Logger;
 public class RSSFeedParser {
     static final String TITLE = "title";
     static final String DESCRIPTION = "description";
-    static final String CHANNEL = "channel";
     static final String LANGUAGE = "language";
     static final String COPYRIGHT = "copyright";
     static final String LINK = "link";
@@ -68,41 +64,33 @@ public class RSSFeedParser {
                 if (event.isStartElement()) {
                     String localPart = event.asStartElement().getName()
                             .getLocalPart();
+                    String prefix = event.asStartElement().getName().getPrefix();
                     if (localPart.equals(ITEM)) {
                         if (isFeedHeader) {
                             isFeedHeader = false;
                             feed = new Feed(title, link, description, language,
                                     copyright, pubdate);
                         }
-                        event = eventReader.nextEvent();
-
+                        eventReader.nextEvent();
                     } else if (localPart.equals(TITLE)) {
                         title = getCharacterData(event, eventReader);
-
                     } else if (localPart.equals(DESCRIPTION)) {
                         description = getCharacterData(event, eventReader);
-
-                    } else if (localPart.equals(LINK)) {
+                    } else if (localPart.equals(LINK) && prefix.isEmpty()) {
                         link = getCharacterData(event, eventReader);
-
                     } else if (localPart.equals(GUID)) {
                         guid = getCharacterData(event, eventReader);
-
                     } else if (localPart.equals(LANGUAGE)) {
                         language = getCharacterData(event, eventReader);
-
                     } else if (localPart.equals(AUTHOR)) {
                         author = getCharacterData(event, eventReader);
-
                     } else if (localPart.equals(PUB_DATE)) {
                         pubdate = getCharacterData(event, eventReader);
-
                     } else if (localPart.equals(COPYRIGHT)) {
                         copyright = getCharacterData(event, eventReader);
-
                     }
                 } else if (event.isEndElement()) {
-                    if (event.asEndElement().getName().getLocalPart() == (ITEM)) {
+                    if (event.asEndElement().getName().getLocalPart().equals(ITEM)) {
                         FeedMessage message = new FeedMessage();
                         message.setAuthor(author);
                         message.setDescription(description);
@@ -110,8 +98,7 @@ public class RSSFeedParser {
                         message.setLink(link);
                         message.setTitle(title);
                         feed.getMessages().add(message);
-                        event = eventReader.nextEvent();
-                        continue;
+                        eventReader.nextEvent();
                     }
                 }
             }
