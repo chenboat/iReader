@@ -112,9 +112,13 @@ public class RSSFeedParser {
     private String getCharacterData(XMLEvent event, XMLEventReader eventReader)
             throws XMLStreamException {
         String result = "";
-        event = eventReader.nextEvent();
-        if (event instanceof Characters) {
-            result = event.asCharacters().getData();
+        while(true) {
+            event = eventReader.nextEvent();
+            if (event instanceof Characters) {
+                result += event.asCharacters().getData();
+            } else {
+                break;
+            }
         }
         return result;
     }
