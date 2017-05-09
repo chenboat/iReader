@@ -88,7 +88,6 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
         {
             double score = 0;
             String desc = f.getDescription() + " " + f.getTitle();
-            log.log(Level.WARNING, desc);
             Map<String, Double> wordsWithScores = new HashMap<String, Double>();
             for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
             {
@@ -100,7 +99,6 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                         // Taking into consideration of time lapses
                         double wScore = ModelUtil.exponentialDecayScore(wordScoresCache.get(key),
                                                                         wordLastUpdatedDatesCache.get(key),date);
-                        log.warning("\t"+ key + ":" +  + wordScoresCache.get(key) + "|" + wScore);
                         score += wScore;
                         wordsWithScores.put(key,wScore);
                     }

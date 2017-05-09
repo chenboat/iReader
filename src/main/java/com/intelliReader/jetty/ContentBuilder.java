@@ -3,10 +3,7 @@ package com.intelliReader.jetty;
 import com.intelliReader.model.KeywordBasedFeedRelevanceModel;
 import com.intelliReader.model.Stemmer;
 import com.intelliReader.model.StopWordFilter;
-import com.intelliReader.newsfeed.Feed;
-import com.intelliReader.newsfeed.FeedMessage;
-import com.intelliReader.newsfeed.RSSFeedParser;
-import com.intelliReader.newsfeed.RSSSources;
+import com.intelliReader.newsfeed.*;
 import com.intelliReader.storage.MongoDBConnections;
 import com.intelliReader.storage.MongoDBStore;
 import com.intelliReader.storage.Store;
@@ -16,6 +13,7 @@ import javax.xml.stream.XMLStreamException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -61,7 +59,7 @@ public class ContentBuilder extends Thread {
                 userId);
 
         // Compute the scores for each article and sort the list by the scores
-        Map<String,String> msgHash = new HashMap<String,String>();
+        Map<String,RSSFeedDescriptor> msgHash = new HashMap<String,RSSFeedDescriptor>();
         List<FeedMessage> feedMsgs = new ArrayList<FeedMessage>();
         for(String rss: RSSSources.feeds.keySet()){
             try{
@@ -75,7 +73,7 @@ public class ContentBuilder extends Thread {
                             &&
                             !msgHash.containsKey(message.getTitle())){
                         // remove the duplicates and visited feed messages
-                        msgHash.put(message.getTitle(), extractSection(RSSSources.feeds.get(rss)));
+                        msgHash.put(message.getTitle(), RSSSources.feeds.get(rss));
                         feedMsgs.add(message);
                     }
                 }
@@ -91,9 +89,10 @@ public class ContentBuilder extends Thread {
             Map<String,Double> wordScores = msg.getWordWithScores();
             String tipOverText = getScores(wordScores,userId);
             String picURL;
-            picURL = HTMLUtil.getPicURLFromNYTimesLink(message.getLink());
+            picURL = msgHash.get(message.getTitle()).getPictureUrl(message);
+            log.log(Level.WARNING, msg.getMsg().getTitle() + "|" + picURL);
             if(picURL != null){     // only add articles having pics
-                String section = msgHash.get(message.getTitle());
+                String section = msgHash.get(message.getTitle()).getCategory();
                 builArticleWithPic(userId, sb, msg, message, tipOverText, picURL, section);
             }
         }
@@ -141,13 +140,13 @@ public class ContentBuilder extends Thread {
             StringBuffer sb = new StringBuffer();
             sb.append("<div id=\"sections\">");
             for (String rss : RSSSources.feeds.keySet()) {
-                String section = extractSection(RSSSources.feeds.get(rss));
+                String section = RSSSources.feeds.get(rss).getCategory();
                 RSSFeedParser parser = new RSSFeedParser(rss);
                 try {
                     Feed feed = parser.readFeed();
                     List<FeedMessage> messages = feed.getMessages();
                     sb.append("<p section=\"" + section + "\">");
-                    sb.append("<span class=\"heading\">" + RSSSources.feeds.get(rss) + " [+]</span>" +
+                    sb.append("<span class=\"heading\">" + RSSSources.feeds.get(rss).getCategory() + " [+]</span>" +
                             "<span onclick=\"up(this)\"> &uarr;&nbsp; </span>");
                     sb.append("</p>\n");
                     sb = sb.append("<div class=\"content\">\n");
@@ -172,10 +171,6 @@ public class ContentBuilder extends Thread {
         }catch (Exception e){
             e.printStackTrace();
         }
-    }
-
-    private String extractSection(String s) {
-        return s.substring("NYTimes ".length());
     }
 
     private String getScores(Map<String,Double> wordScores, String userId) {
