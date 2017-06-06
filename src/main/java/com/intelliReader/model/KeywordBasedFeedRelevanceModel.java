@@ -88,6 +88,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
         {
             double score = 0;
             String desc = f.getDescription() + " " + f.getTitle();
+            int numWords = desc.split("\\s").length;
             Map<String, Double> wordsWithScores = new HashMap<String, Double>();
             for(String w : TextAnalyzer.tokenizeLowerCaseAndRemoveStopWordAndStem(desc.trim(),stopWordFilter,stemmer))
             {
@@ -107,7 +108,7 @@ public class KeywordBasedFeedRelevanceModel implements FeedRelevanceModel {
                     e.printStackTrace();
                 }
             }
-            lst.add(new ScoredFeedMessage(score,f,wordsWithScores));
+            lst.add(new ScoredFeedMessage(score / numWords,f,wordsWithScores));
         }
 
         Collections.sort(lst,Collections.reverseOrder());
