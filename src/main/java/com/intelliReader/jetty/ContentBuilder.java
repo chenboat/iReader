@@ -1,5 +1,6 @@
 package com.intelliReader.jetty;
 
+import com.intelliReader.image.LabelImage;
 import com.intelliReader.model.KeywordBasedFeedRelevanceModel;
 import com.intelliReader.model.Stemmer;
 import com.intelliReader.model.StopWordFilter;
@@ -10,6 +11,7 @@ import com.intelliReader.storage.Store;
 import com.intelliReader.util.StringUtil;
 
 import javax.xml.stream.XMLStreamException;
+import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -84,6 +86,9 @@ public class ContentBuilder extends Thread {
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
         sb.append("<div class=\"grid\" id=\"columns\">");
+        LabelImage LABEL_IMAGE = new LabelImage(
+                getClass().getResourceAsStream("/inception5h/tensorflow_inception_graph.pb"),
+                getClass().getResourceAsStream("/inception5h/imagenet_comp_graph_label_strings.txt"),3);
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
             Map<String,Double> wordScores = msg.getWordWithScores();
@@ -93,6 +98,8 @@ public class ContentBuilder extends Thread {
             log.log(Level.WARNING, msg.getMsg().getTitle() + "|" + picURL);
             if(picURL != null){     // only add articles having pics
                 String section = msgHash.get(message.getTitle()).getCategory();
+                // Add the pic labels to the tipOverText.
+                tipOverText = getString(LABEL_IMAGE, tipOverText, picURL);
                 builArticleWithPic(userId, sb, msg, message, tipOverText, picURL, section);
             }
         }
@@ -100,6 +107,18 @@ public class ContentBuilder extends Thread {
         String rankListHTML = sb.toString();
 
         MongoDBConnections.accountRankingHTMLStore.put(userId,rankListHTML);
+    }
+
+    private String getString(LabelImage LABEL_IMAGE, String tipOverText, String picURL) {
+        List<String> imageLabels = LABEL_IMAGE.getLabels(picURL);
+        if (imageLabels != null) {
+            tipOverText += "<";
+            for (String l : imageLabels) {
+                tipOverText += (l + ",");
+            }
+            tipOverText += ">";
+        }
+        return tipOverText;
     }
 
     private void builArticleWithPic(String userId,

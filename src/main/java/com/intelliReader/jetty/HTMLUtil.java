@@ -9,8 +9,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.server.Request;
+
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,5 +81,34 @@ public class HTMLUtil {
             httpclient.close();
         }
         return null;
+    }
+
+    /**
+     *
+     * @param url a url representing a pic
+     * @return a string for the picture
+     */
+    public static byte[] getPicFromUrl(String url) throws IOException {
+        URL u = new URL(url);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        InputStream is = null;
+        try {
+            is = u.openStream();
+            byte[] byteChunk = new byte[4096]; // Or whatever size you want to read in at a time.
+            int n;
+
+            while ( (n = is.read(byteChunk)) > 0 ) {
+                baos.write(byteChunk, 0, n);
+            }
+        }
+        catch (IOException e) {
+            System.err.printf ("Failed while reading bytes from %s: %s", u.toExternalForm(), e.getMessage());
+            e.printStackTrace ();
+            // Perform any other exception handling that's appropriate.
+        }
+        finally {
+            if (is != null) { is.close(); }
+        }
+        return baos.toByteArray();
     }
 }
