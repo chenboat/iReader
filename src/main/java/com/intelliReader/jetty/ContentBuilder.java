@@ -87,19 +87,19 @@ public class ContentBuilder extends Thread {
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
         sb.append("<div class=\"grid\" id=\"columns\">");
         LabelImage LABEL_IMAGE = new LabelImage(
-                getClass().getResourceAsStream("/inception5h/tensorflow_inception_graph.pb"),
-                getClass().getResourceAsStream("/inception5h/imagenet_comp_graph_label_strings.txt"),3);
+                getClass().getResourceAsStream("/iReader/inception5h/tensorflow_inception_graph.pb"),
+                getClass().getResourceAsStream("/iReader/inception5h/imagenet_comp_graph_label_strings.txt"),3);
         for(KeywordBasedFeedRelevanceModel.ScoredFeedMessage msg: rankedList){
             FeedMessage message = msg.getMsg();
             Map<String,Double> wordScores = msg.getWordWithScores();
             String tipOverText = getScores(wordScores,userId);
             String picURL;
             picURL = msgHash.get(message.getTitle()).getPictureUrl(message);
-            log.log(Level.WARNING, msg.getMsg().getTitle() + "|" + picURL);
             if(picURL != null){     // only add articles having pics
                 String section = msgHash.get(message.getTitle()).getCategory();
                 // Add the pic labels to the tipOverText.
                 tipOverText = getString(LABEL_IMAGE, tipOverText, picURL);
+                log.log(Level.WARNING, msg.getMsg().getTitle() + "|" + picURL + "|" + tipOverText);
                 builArticleWithPic(userId, sb, msg, message, tipOverText, picURL, section);
             }
         }
