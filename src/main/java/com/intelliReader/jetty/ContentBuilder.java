@@ -131,7 +131,7 @@ public class ContentBuilder extends Thread {
         sb.append("<div class=\"w3-card-4 w3-quarter w3-container\" section=\"" + section +  "\">");
         sb.append("<img src=\"");
         sb.append(picURL);
-        sb.append("\">\n");
+        sb.append("\" style=\"width:100%;max-width:400px\">\n");
         sb.append("<div class=\"w3-container\">");
         sb.append("<a onclick=\"sendText(this,'" + userId  + "','" + section + "')\" href=\"");
         sb.append(message.getLink());

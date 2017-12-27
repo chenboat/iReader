@@ -32,7 +32,8 @@ public class FeedMessage {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        // Remove all image src from the text description.
+        this.description = description.replaceAll("<img src=[^>]*>", "");
     }
 
     public String getLink() {
