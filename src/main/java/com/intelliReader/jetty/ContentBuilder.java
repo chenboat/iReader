@@ -128,11 +128,11 @@ public class ContentBuilder extends Thread {
                                     String tipOverText,
                                     String picURL,
                                     String section) {
-        sb.append("<div class=\"grid-item\" section=\"" + section +  "\">");
-        sb.append("<figure>" + "    <img src=\"");
+        sb.append("<div class=\"w3-card-4 w3-quarter w3-container\" section=\"" + section +  "\">");
+        sb.append("<img src=\"");
         sb.append(picURL);
         sb.append("\">\n");
-        sb.append("<figcaption>");
+        sb.append("<div class=\"w3-container\">");
         sb.append("<a onclick=\"sendText(this,'" + userId  + "','" + section + "')\" href=\"");
         sb.append(message.getLink());
         sb.append("\" title=\"");
@@ -146,8 +146,7 @@ public class ContentBuilder extends Thread {
         sb.append("<small>");
         sb.append(message.getDescription());
         sb.append("</small>");
-        sb.append("</figcaption>");
-        sb.append("</figure>");
+        sb.append("</div>");
         sb.append("</div>");
     }
 
