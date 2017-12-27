@@ -85,7 +85,7 @@ public class ContentBuilder extends Thread {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        sb.append("<div class=\"grid\" id=\"columns\">");
+        sb.append("<div>");
         LabelImage LABEL_IMAGE = new LabelImage(
                 getClass().getResourceAsStream("/iReader/inception5h/tensorflow_inception_graph.pb"),
                 getClass().getResourceAsStream("/iReader/inception5h/imagenet_comp_graph_label_strings.txt"),3);

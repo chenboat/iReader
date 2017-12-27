@@ -167,7 +167,6 @@
          function loadRankingHTMLPage(userId) {
              $("#accountRankingHTML").load("jersey/account/rankingHtml",{id:userId},
                function() {
-                 var $grid = $('.grid').masonry({ columnWidth: 250, itemSelector: '.grid-item'});
                  if (typeof(Storage) != "undefined") {
                      if (sessionStorage.sectionPreference) {
                        upSection(sessionStorage.sectionPreference);
