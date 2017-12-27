@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class HTMLUtil {
     public static final String ACCOUNT_DELIMITER = ":";
     private static final Pattern p = Pattern.compile(
-            "https?://graphics..nytimes.com/[^\"]*thumbLarge.jpg|https?://static[^\"]*.nyt.com/[^\"]*.jpg|https?://static[^\"]*.nyt.com/[^\"]*.png"); // the regex to match the picture url
+            "https?://graphics..nytimes.com/[^\"\']*thumbLarge.jpg|https?://static[^\"]*.nyt.com/[^,;\"\']*.jpg|https?://static[^\"\']*.nyt.com/[^\"\']*.png"); // the regex to match the picture url
 
     public static void setHTMLPagePrelude(Request baseRequest,
                                           HttpServletResponse response) throws IOException {
@@ -105,6 +105,7 @@ public class HTMLUtil {
             System.err.printf ("Failed while reading bytes from %s: %s", u.toExternalForm(), e.getMessage());
             e.printStackTrace ();
             // Perform any other exception handling that's appropriate.
+            throw e;
         }
         finally {
             if (is != null) { is.close(); }
