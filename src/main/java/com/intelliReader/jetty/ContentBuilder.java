@@ -85,7 +85,7 @@ public class ContentBuilder extends Thread {
         }
         List<KeywordBasedFeedRelevanceModel.ScoredFeedMessage> rankedList =
                 model.rankFeeds(feedMsgs, Calendar.getInstance().getTime());
-        sb.append("<div>");
+        sb.append("<div class=\"w3-row-padding\">");
         LabelImage LABEL_IMAGE = new LabelImage(
                 getClass().getResourceAsStream("/iReader/inception5h/tensorflow_inception_graph.pb"),
                 getClass().getResourceAsStream("/iReader/inception5h/imagenet_comp_graph_label_strings.txt"),3);
@@ -128,7 +128,7 @@ public class ContentBuilder extends Thread {
                                     String tipOverText,
                                     String picURL,
                                     String section) {
-        sb.append("<div class=\"w3-card-4 w3-quarter w3-container\" section=\"" + section +  "\">");
+        sb.append("<div class=\"w3-card-4 w3-quarter w3-padding-16\" section=\"" + section +  "\">");
         sb.append("<img src=\"");
         sb.append(picURL);
         sb.append("\" style=\"width:100%;max-width:400px\">\n");
