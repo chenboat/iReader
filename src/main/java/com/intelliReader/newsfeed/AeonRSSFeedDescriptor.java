@@ -22,7 +22,7 @@ public class AeonRSSFeedDescriptor implements RSSFeedDescriptor {
 
     @Override
     public String getPictureUrl(FeedMessage feedMessage) {
-        Matcher m = p.matcher(feedMessage.getDescription());
+        Matcher m = p.matcher(feedMessage.getOriginalDescription());
         if (m.find()) {
             return m.group();
         }

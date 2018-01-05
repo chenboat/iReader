@@ -10,7 +10,8 @@ package com.intelliReader.newsfeed;
  */
 public class FeedMessage {
     String title;
-    String description;
+    String description; // The description text with possible modification.
+    String originalDescription; // The description text without modification.
     String link;
     String author;
     String guid;
@@ -32,8 +33,13 @@ public class FeedMessage {
     }
 
     public void setDescription(String description) {
+        this.originalDescription = description;
         // Remove all image src from the text description.
         this.description = description.replaceAll("<img src=[^>]*>", "");
+    }
+    
+    public String getOriginalDescription() {
+        return originalDescription;
     }
 
     public String getLink() {
