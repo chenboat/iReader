@@ -165,7 +165,7 @@ public class ContentBuilder extends Thread {
                     List<FeedMessage> messages = feed.getMessages();
                     sb.append("<p section=\"" + section + "\">");
                     sb.append("<span class=\"heading\">" + RSSSources.feeds.get(rss).getCategory() + " [+]</span>" +
-                            "<span onclick=\"up(this)\"> &uarr;&nbsp; </span>");
+                            "<span onclick=\"up(this)\"> <i class=\"fa fa-arrow-up\"></i> </span>");
                     sb.append("</p>\n");
                     sb = sb.append("<div class=\"content\">\n");
                     for (FeedMessage message : messages) {
