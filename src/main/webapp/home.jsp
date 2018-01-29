@@ -93,14 +93,10 @@
     <script type="text/javascript">
         function upSection(section) {
             var selected = $("div").filter(function() {return $(this).attr("section") == section});
-            var $grid = $('.grid').masonry({
-              columnWidth: 250,
-              itemSelector: '.grid-item'
-            });
-            // make jQuery object
-            copied = selected.clone();
-            $grid.masonry( 'remove', selected).masonry();
-            $grid.prepend(copied).masonry('prepended', copied);
+            var list = document.getElementById("accountRankingHTML").firstChild;
+            for (i = 0; i < selected.length; i++) {
+              list.insertBefore(selected[i], list.childNodes[0]);
+            }
         }
     </script>
 </head>
