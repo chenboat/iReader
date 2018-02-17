@@ -14,7 +14,6 @@ public class RSSSources {
     static
     {
         feeds.put("http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",new NYTimesRSSFeedDescriptor("NYTimes Homepage"));
-        feeds.put("http://rss.nytimes.com/services/xml/rss/nyt/InternationalHome.xml",new NYTimesRSSFeedDescriptor("NYTimes International"));
         feeds.put("http://rss.nytimes.com/services/xml/rss/nyt/World.xml",new NYTimesRSSFeedDescriptor("NYTimes World"));
         feeds.put("http://rss.nytimes.com/services/xml/rss/nyt/US.xml",new NYTimesRSSFeedDescriptor("NYTimes US"));
         feeds.put("http://rss.nytimes.com/services/xml/rss/nyt/Business.xml",new NYTimesRSSFeedDescriptor("NYTimes Business"));
